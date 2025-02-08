@@ -5,6 +5,10 @@ using std::cout;
 using std::endl;
 
 
+LPProblem::LPProblem() {
+    n = 0;
+}
+
 LPProblem::LPProblem(int n)
 {
     this->n = n;
@@ -16,6 +20,11 @@ LPProblem::LPProblem(vector<double> objective, ObjectiveType objective_type)
     this->n = objective.size();
     this->objective = objective;
     this->objective_type = objective_type;
+}
+
+void LPProblem::set_solution_dim(int n)
+{
+    this->n = n;
 }
 
 
@@ -186,7 +195,7 @@ LPProblem& LPProblemGeneral::dual() {
     }
 
     dual_problem->set_objective(dual_objective, ObjectiveType::MAXIMIZE);
-    // dual_problem->convert();
+
     return *dual_problem;
 }
 
@@ -241,6 +250,7 @@ LPProblem& LPProblemSlack::dual() {
     LPProblemSlack* dual_problem = new LPProblemSlack(m);
     this->convert();
     
+
 
     return *dual_problem;
 }

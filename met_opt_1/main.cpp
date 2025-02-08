@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include "lp_problem.h"
 
+void run_interface() {
+
+}
+
 int main() {
 	LPProblemGeneral problem(4);
 	problem.set_objective({ 3, 2, 5, -1 }, ObjectiveType::MAXIMIZE);

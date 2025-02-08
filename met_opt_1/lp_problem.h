@@ -30,8 +30,10 @@ protected:
     vector<Constraint> constraints;
     vector<VariableBound> bounds;
 public:
+    LPProblem();
     LPProblem(int n);
     LPProblem(vector<double> objective, ObjectiveType objective_type = ObjectiveType::MINIMIZE);
+    void set_solution_dim(int n);
     void set_objective(const std::vector<double>& coeffs, ObjectiveType type);
     void add_constraint(const Constraint& c);
     void add_var_bound(const VariableBound& vb);
