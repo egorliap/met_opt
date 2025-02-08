@@ -10,6 +10,7 @@ LPProblem::LPProblem(int n)
     this->n = n;
 }
 
+
 LPProblem::LPProblem(vector<double> objective, ObjectiveType objective_type)
 {
     this->n = objective.size();
@@ -24,6 +25,7 @@ void LPProblem::set_objective(const std::vector<double>& coeffs, ObjectiveType t
     objective_type = type;
 }
 
+
 void LPProblem::add_constraint(const Constraint& c)
 {
     if (c.coefficients.size() > n) {
@@ -32,6 +34,7 @@ void LPProblem::add_constraint(const Constraint& c)
     constraints.push_back(c);
 }
 
+
 void LPProblem::add_var_bound(const VariableBound& vb)
 {
     if (vb.component > n || vb.component < 1) {
@@ -39,6 +42,7 @@ void LPProblem::add_var_bound(const VariableBound& vb)
     }
     bounds.push_back(vb);
 }
+
 
 void LPProblem::print_problem()
 {
@@ -81,7 +85,6 @@ void LPProblem::print_problem()
 }
 
 
-// Converts base linear problem to general
 void LPProblemGeneral::convert()
 {
     // Objective generalization
@@ -135,9 +138,59 @@ void LPProblemGeneral::convert()
             fl = false;
         }
     }
-};
+}
 
-// Converts base linear problem to slack
+
+LPProblem& LPProblemGeneral::dual() {
+    int m = constraints.size();
+    LPProblemGeneral* dual_problem = new LPProblemGeneral(m);
+    
+    this->convert();
+
+    vector<double> dual_objective;
+    for (int i = 0; i < m; i++) {
+        dual_objective.push_back(constraints[i].b);
+
+        VariableBound dual_bound;
+        if (constraints[i].type == InequalityType::GREATER_EQUAL) {
+            dual_bound.component = i + 1;
+            dual_bound.type = BoundType::NOT_NEGATIVE;
+        }
+        else {
+            dual_bound.component = i + 1;
+            dual_bound.type = BoundType::NO;
+        }
+
+        Constraint dual_constraint;
+        
+        for (int j = 0; j < n; j++) {
+            dual_constraint.coefficients.push_back(constraints[j].coefficients[i]);
+        }
+        for (auto& bound : bounds) {
+            if (bound.component - 1 == i) {
+                if (bound.type == BoundType::NOT_NEGATIVE) {
+                    dual_constraint.type = InequalityType::LESS_EQUAL;
+                    break;
+                }
+                else {
+                    dual_constraint.type = InequalityType::EQUAL;
+                    break;
+                }
+            }
+        }
+        dual_constraint.b = objective[i];
+
+
+        dual_problem->add_var_bound(dual_bound);
+        dual_problem->add_constraint(dual_constraint);
+    }
+
+    dual_problem->set_objective(dual_objective, ObjectiveType::MAXIMIZE);
+    // dual_problem->convert();
+    return *dual_problem;
+}
+
+
 void LPProblemSlack::convert()
 {
     LPProblemGeneral::convert();
@@ -178,4 +231,16 @@ void LPProblemSlack::convert()
             n += 1;
         }
     }
+}
+
+
+LPProblem& LPProblemSlack::dual() {
+    vector<double> dual_objective;
+    int m = constraints.size();
+
+    LPProblemSlack* dual_problem = new LPProblemSlack(m);
+    this->convert();
+    
+
+    return *dual_problem;
 }

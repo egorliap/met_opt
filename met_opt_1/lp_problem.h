@@ -36,19 +36,30 @@ public:
     void add_constraint(const Constraint& c);
     void add_var_bound(const VariableBound& vb);
     void print_problem();
-    virtual void convert()=0;
+    virtual void convert() = 0;
+    virtual LPProblem& dual() = 0;
 };
 
 // Общая задача ЛП
 class LPProblemGeneral : public LPProblem {
 public:
     using LPProblem::LPProblem;
+
+    // Converts base linear problem to general
     void convert() override;
+
+    // Converts general linear problem to its dual
+    LPProblem& dual() override;
 };
 
 // Каноническая задача ЛП
 class LPProblemSlack : public LPProblemGeneral {
 public:
     using LPProblemGeneral::LPProblemGeneral;
+
+    // Converts base (or general) linear problem to slack
     void convert() override;
+
+    // Converts slack linear problem to its dual
+    LPProblem& dual() override;
 };
