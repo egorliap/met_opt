@@ -1,5 +1,4 @@
-﻿#include <stdlib.h>
-#include <vector>
+﻿#include <vector>
 using std::vector;
 
 
@@ -38,6 +37,9 @@ public:
     void add_constraint(const Constraint& c);
     void add_var_bound(const VariableBound& vb);
     void print_problem();
+    vector<double> get_objective();
+    vector<Constraint> get_constraints();
+
     virtual void convert() = 0;
     virtual LPProblem& dual() = 0;
 };

@@ -93,6 +93,16 @@ void LPProblem::print_problem()
     cout << "\n\n" << endl;
 }
 
+vector<double> LPProblem::get_objective()
+{
+    return objective;
+}
+
+vector<Constraint> LPProblem::get_constraints()
+{
+    return constraints;
+}
+
 
 void LPProblemGeneral::convert()
 {
@@ -151,10 +161,11 @@ void LPProblemGeneral::convert()
 
 
 LPProblem& LPProblemGeneral::dual() {
+    this->convert();
+
     int m = constraints.size();
     LPProblemGeneral* dual_problem = new LPProblemGeneral(m);
     
-    this->convert();
 
     vector<double> dual_objective;
     for (int i = 0; i < m; i++) {
@@ -169,10 +180,13 @@ LPProblem& LPProblemGeneral::dual() {
             dual_bound.component = i + 1;
             dual_bound.type = BoundType::NO;
         }
+        dual_problem->add_var_bound(dual_bound);
 
+    }
+    for (int i = 0; i < n; i++){
         Constraint dual_constraint;
         
-        for (int j = 0; j < n; j++) {
+        for (int j = 0; j < m; j++) {
             dual_constraint.coefficients.push_back(constraints[j].coefficients[i]);
         }
         for (auto& bound : bounds) {
@@ -190,7 +204,6 @@ LPProblem& LPProblemGeneral::dual() {
         dual_constraint.b = objective[i];
 
 
-        dual_problem->add_var_bound(dual_bound);
         dual_problem->add_constraint(dual_constraint);
     }
 

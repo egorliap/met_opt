@@ -1,28 +1,65 @@
 #include <exception>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <utility>
 #include "lp_problem_parser.h"
 
-std::pair<int, int> LPProblemParser::parse_dims(string str_dims)
+std::pair<int, int> LPProblemParser::parse_dims(const string& str_dims)
 {
-	return std::pair<int, int>();
+	std::istringstream iss(str_dims);
+	int first, second;
+	iss >> first >> second;
+	return std::make_pair(first, second);
+
 }
 
-ObjectiveType LPProblemParser::parse_objective_type(string str_objective_type)
+ObjectiveType LPProblemParser::parse_objective_type(const string& str_objective_type)
 {
-	return ObjectiveType();
+	return (str_objective_type.compare("max") != 0) ? ObjectiveType::MAXIMIZE : ObjectiveType::MINIMIZE;
 }
 
-vector<double> LPProblemParser::parse_objective(string str_objective)
+vector<double> LPProblemParser::parse_objective(const string& str_objective)
 {
-	return vector<double>();
+	vector<double> numbers;
+	std::istringstream iss(str_objective);
+	double number;
+
+	while (iss >> number) {
+		numbers.push_back(number);
+	}
+
+	return numbers;
 }
 
-Constraint LPProblemParser::parse_constraint(string str_constraint)
+Constraint LPProblemParser::parse_constraint(const string& str_constraint, int n)
 {
-	return Constraint();
+	std::istringstream iss(str_constraint);
+	std::vector<double> coefs;
+	double b;
+
+	for (int i = 0; i < n; ++i) {
+		double a;
+		iss >> a;
+		coefs.push_back(a);
+	}
+
+	string ineq;
+	iss >> ineq;
+	iss >> b;
+	InequalityType constraint_type{};
+
+	if (ineq.compare("<=") == 0) {
+		constraint_type = InequalityType::LESS_EQUAL;
+	}else if (ineq.compare(">=") == 0) {
+		constraint_type = InequalityType::GREATER_EQUAL;
+	}else if (ineq.compare("=") == 0) {
+		constraint_type = InequalityType::EQUAL;
+	}
+	return Constraint({ coefs, b, constraint_type });
 }
 
-VariableBound LPProblemParser::parse_var_bound(string str_var_bound)
+VariableBound LPProblemParser::parse_var_bound(const string& str_var_bound)
 {
 	return VariableBound();
 }
@@ -42,7 +79,7 @@ void LPProblemParser::parse(LPProblem& problem) {
 
 	for (int i = 0; i < m; i++) {
 		line = reader.read_line();
-		problem.add_constraint(parse_constraint(line));
+		problem.add_constraint(parse_constraint(line, n));
 	}
 	for (int i = 0; i < n; i++) {
 		try {
