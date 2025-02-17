@@ -19,6 +19,9 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     vector<double> b(m, 0);
     vector<double> c(n + m, 0);
 
+
+    vector<Constraint> tmp(constraints);
+
     vector<double> solution(n + m, 0);
     for (int i = 0; i < m; i++)
     {
@@ -26,21 +29,24 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
+            // tmp[i].coefficients[i] = -tmp[i].coefficients[i];
             for (int j = 0; j < n; j++)
             {
-                constraints[i].coefficients[j] = -constraints[i].coefficients[j];
+                tmp[i].coefficients[j] = -tmp[i].coefficients[j];
+                // constraints[i].coefficients[j] = -constraints[i].coefficients[j];
             }
         }
         for (int j = 0; j < n; j++)
         {
-            A[i][j] = constraints[i].coefficients[j];
+            A[i][j] = tmp[i].coefficients[j];
         }
         A[i][n + i] = 1;
         c[n + i] = 1;
         solution[n + i] = b[i];
     }
 
-    LPProblem *problem = new LPProblemSlack(m);
+
+    LPProblem *problem = new LPProblemSlack(m+n);
     problem->set_objective(c, ObjectiveType::MINIMIZE);
     for (int i = 0; i < m; i++)
     {
@@ -58,11 +64,24 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     }
 
     LPProblemSolution artificial_solution = solve(*problem, solution);
+
+    bool infeasible = false;
+    for (int i = n; i < n + m; ++i) {
+        if (artificial_solution.solution[i] > 0) { // Учет вычислительной погрешности
+            infeasible = true;
+            break;
+        }
+    }
+    if (infeasible) {
+        throw std::runtime_error("Problem is infeasible");
+    }
+
     vector<double> ans;
     for (int i = 0; i < n; i++)
     {
         ans.push_back(artificial_solution.solution[i]);
     }
+
     return ans;
 }
 
