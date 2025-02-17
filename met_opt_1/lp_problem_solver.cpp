@@ -102,12 +102,15 @@ public:
     }
 
     void print() {
+        std::cout << std::endl;
         for (auto& line_ind : line_indexes) {
             for (auto& col_ind : column_indexes) {
                 std::cout << matrix[line_ind][col_ind] << " ";
             }
             std::cout << std::endl;
         }
+        std::cout << "\n\n";
+
     }
     void set_columns(vector<int> columns) {
         column_indexes = columns;
@@ -143,7 +146,7 @@ public:
         return *ans;
     }
     Matrix& get_inverse_matrix() {
-        if (n == 0 || line_indexes.size() != column_indexes.size()) {
+        if (line_indexes.size() == 0 || line_indexes.size() != column_indexes.size()) {
             throw std::invalid_argument("Matrix must be square");
         }
         vector<vector<double>> augmented(line_indexes.size(), vector<double>(2 * line_indexes.size(), 0));
@@ -266,7 +269,7 @@ public:
         vector<vector<double>> ans(line_indexes.size(), vector<double>(column_indexes.size()));
         for (int i = 0; i < line_indexes.size(); i++) {
             for (int j = 0; j < column_indexes.size(); j++) {
-                ans[i][j] = matrix[line_indexes[i]][column_indexes[j]] - a.matrix[a.line_indexes[i]][a.column_indexes[j]];
+                ans[i][j] = std::round((matrix[line_indexes[i]][column_indexes[j]] - a.matrix[a.line_indexes[i]][a.column_indexes[j]])*1000)/1000;
             }
         }
         Matrix* ret = new Matrix(ans);
@@ -303,7 +306,7 @@ public:
     bool operator> (const Matrix& rhs) { return  operator< (rhs); }
     bool operator<=(const Matrix& rhs) { return !operator> (rhs); }
     bool operator>=(const Matrix& rhs) { return !operator< (rhs); }
-    bool operator>(int num) {
+    bool operator>(double num) {
         for (int i = 0; i < line_indexes.size(); i++) {
             for (int j = 0; j < column_indexes.size(); j++) {
                 if (matrix[line_indexes[i]][column_indexes[j]] <= num) {
@@ -313,7 +316,7 @@ public:
         }
         return true;
     }
-    bool operator<(int num) {
+    bool operator<(double num) {
         for (int i = 0; i < line_indexes.size(); i++) {
             for (int j = 0; j < column_indexes.size(); j++) {
                 if (matrix[line_indexes[i]][column_indexes[j]] >= num) {
@@ -323,9 +326,45 @@ public:
         }
         return true;
     }
-    bool operator<=(int num) { return !operator> (num); }
-    bool operator>=(int num) { return !operator< (num); }
+    bool operator<=(double num) {
+        for (int i = 0; i < line_indexes.size(); i++) {
+            for (int j = 0; j < column_indexes.size(); j++) {
+                if (matrix[line_indexes[i]][column_indexes[j]] > num) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    bool operator>=(double num) {
+        for (int i = 0; i < line_indexes.size(); i++) {
+            for (int j = 0; j < column_indexes.size(); j++) {
+                if (matrix[line_indexes[i]][column_indexes[j]] < num) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    Matrix& operator*(double num) {
+        for (int i = 0; i < line_indexes.size(); i++) {
+            for (int j = 0; j < column_indexes.size(); j++) {
+                matrix[line_indexes[i]][column_indexes[j]] *= num;
+                    
+            }
+        }
+        return *this;
+    }
 };
+
+void print_vector(const vector<int>& a) {
+    for (auto& j : a) {
+        std::cout << j << " ";
+    }
+    std::cout << "\n\n" << std::endl;
+}
+
+
 
 vector<double> SimplexSolver::get_support_vector()
 {
@@ -334,55 +373,171 @@ vector<double> SimplexSolver::get_support_vector()
 
 LPProblemSolution& SimplexSolver::solve(LPProblem& problem)
 {
-    vector<double> support = { 1,1,124,1,1,1};
-    
+    vector<double> support = { 0, 0, 0, 1, 1};
+    Matrix X(support);
+
     vector<vector<double>> A_;
     for (auto& constr : problem.get_constraints()) {
         A_.push_back(constr.coefficients);
     }
-
-    vector<int> n_plus, n_zero, n_all;
-    for (int i = 0; i < support.size(); i++) {
-        if (support[i] != 0) {
-            n_plus.push_back(i);
-        }
-        else {
-            n_zero.push_back(i);
-        }
-        n_all.push_back(i);
-    }
+    int iter = 0;
 
     Matrix A(A_);
-    Matrix X(support);
+    std::cout << "A[M, N]: ";
+    A.print();
+    vector<int> nk;
+    while(true) {
+        std::cout << "ITERATION NUMBER " << iter << "\n\n";
+
+        std::cout << "X: ";
+        X.print();
+       
+
+        vector<int> n_plus, n_zero, n_all;
+        for (int i = 0; i < X.matrix.size(); i++) {
+            if (X.matrix[i][0] != 0) {
+                n_plus.push_back(i);
+            }
+            else {
+                n_zero.push_back(i);
+            }
+            n_all.push_back(i);
+        }
+        std::cout << "n_plus: ";
+        print_vector(n_plus);
+        std::cout << "n_zero: ";
+        print_vector(n_zero);
+        std::cout << "n_all: ";
+        print_vector(n_all);
+
+        A.set_columns(n_plus);
+        std::cout << "A[M, N+]: ";
+        A.print();
+        if (nk.empty()) {
+            nk = A.get_addition_to_square_matrix(n_zero);
+        }
+        else {
+            A.set_columns(nk);
+        }
+        std::cout << "nk: ";
+        print_vector(nk);
+        std::cout << "A[M, Nk]: ";
+        A.print();
+
+        vector<int> lk = subtract_vectors<int>(n_all, nk);
+        std::cout << "lk: ";
+        print_vector(lk);
+
+        Matrix c(problem.get_objective());
 
 
-    A.set_columns(n_plus);
+        Matrix B = A.get_inverse_matrix();
+        std::cout << "B[Nk, M]: ";
+        B.print();
+
+        Matrix cnk = c.allocate_matrix(nk, { 0 });
+
+        A.set_columns(n_all);
+        std::cout << "A[M, N]: ";
+        A.print();
+
+        Matrix dkt = c.transpose().subtract(cnk.transpose().multiply(B.multiply(A)));
+
+        std::cout << "dkt: ";
+        dkt.print();
+        Matrix dklkt = dkt.allocate_matrix({ 0 }, lk);
+
+        std::cout << "dklkt: ";
+        dklkt.print();
+
+        if (dklkt >= 0) {
+            LPProblemSolution* solution = new LPProblemSolution(Status::OPTIMAL, X.transpose().matrix[0], c.transpose().multiply(X).matrix[0][0]);
+            return *solution;
+        }
 
 
-    vector<int> nk = A.get_addition_to_square_matrix(n_zero);
+        vector<int> jk;
+        for (int i = 0; i < dkt.matrix[0].size(); i++) {
+            if (dkt.matrix[0][i] < 0) {
+                jk.push_back(i);
+                break;
+            }
+        }
 
-    vector<int> lk = subtract_vectors<int>(n_all, nk);
+        std::cout << "jk: ";
+        print_vector(jk);
 
-    Matrix c(problem.get_objective());
-    
-    A.set_columns(nk);
 
-    Matrix B = A.get_inverse_matrix();
-    
-    Matrix cnk = c.allocate_matrix(nk, {0});
-  
-    A.set_columns(n_all);
+        A.set_columns(jk);
+        std::cout << "A[M, jk]: ";
+        A.print();
 
-    Matrix dkt = c.transpose().subtract(cnk.transpose().multiply(B.multiply(A)));
-   
+        Matrix BA = B.multiply(A);
+        std::cout << "BA: ";
+        BA.print();
 
-    dkt.print();
-    if (dkt.allocate_matrix({0}, lk) >= 0) {
-        LPProblemSolution* solution = new LPProblemSolution(Status::OPTIMAL, support, c.transpose().multiply(X).matrix[0][0]);
-        return *solution;
+        vector<double> uk_(n_all.size(), 0);
+        for (int i = 0; i < BA.matrix.size(); i++) {
+            uk_[nk[i]] = BA.matrix[i][0];
+        }
+        for (auto& j : jk) {
+            uk_[j] = -1;
+        }
+        Matrix uk(uk_);
+
+        std::cout << "uk: ";
+        uk.print();
+
+        if (uk.allocate_matrix(nk, { 0 }) <= 0) {
+            LPProblemSolution* solution = new LPProblemSolution(Status::UNBOUNDED);
+            return *solution;
+        }
+
+        vector<int> i_;
+        for (auto& i : nk) {
+            if (uk.matrix[i][0] > 0) {
+                i_.push_back(i);
+            }
+        }
+        std::cout << "i: ";
+        print_vector(i_);
+
+        if (nk == n_plus || uk.allocate_matrix(subtract_vectors<int>(nk, n_plus), {0}) <= 0) {
+            double theta_k = 100000000000;
+            for (auto& i : i_) {
+                if (theta_k > X.matrix[i][0] / uk.matrix[i][0]) {
+                    theta_k = X.matrix[i][0] / uk.matrix[i][0];
+                }
+            }
+            std::cout << "theta: " << theta_k << std::endl;
+
+            X = X.subtract(uk * theta_k);
+        }
+        else {
+            bool ext = false;
+            vector<int> nk_minus_n_plus = subtract_vectors<int>(nk, n_plus);
+            for (auto& l : lk) {
+                for (auto& n : nk_minus_n_plus) {
+                    
+                    A.set_columns(concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n })));
+                    A.print();
+                    if (A.determinant(A.allocate_matrix(A.line_indexes, A.column_indexes).matrix) != 0) {
+                        nk = concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n }));
+                        ext = true;
+                        A.set_columns(nk);
+                        break;
+                    }
+                }
+                if (ext) {
+                    break;
+                }
+            }
+
+        }
+        iter += 1;
     }
 
-    LPProblemSolution* solution = new LPProblemSolution(Status::UNBOUNDED);
+    LPProblemSolution* solution = new LPProblemSolution(Status::INFEASABLE);
     return *solution;
 }
 
