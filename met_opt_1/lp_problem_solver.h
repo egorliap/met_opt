@@ -1,45 +1,59 @@
+#pragma once
+
 #include <vector>
 #include "lp_problem.h"
+#include "matrix.h"
 #include <cmath>
+
 using std::vector;
 
-enum Status {
-	OPTIMAL, INFEASABLE, UNBOUNDED
+enum Status
+{
+	OPTIMAL,
+	INFEASABLE,
+	UNBOUNDED
 };
 
-class LPProblemSolution {
+class LPProblemSolution
+{
 public:
 	Status status;
 	vector<double> solution;
 	double objective_value;
-	LPProblemSolution(Status status, vector<double> solution = {}, double objective_value = 0) {
+	LPProblemSolution(Status status, vector<double> solution = {}, double objective_value = 0)
+	{
 		this->status = status;
-		if (status == Status::OPTIMAL) {
+		if (status == Status::OPTIMAL)
+		{
 			this->solution = solution;
 			this->objective_value = objective_value;
 		}
-		else if (status == Status::INFEASABLE) {
+		else if (status == Status::INFEASABLE)
+		{
 			this->solution = {};
 			this->objective_value = 0;
 		}
-		else if (status == Status::UNBOUNDED) {
+		else if (status == Status::UNBOUNDED)
+		{
 			this->solution = {};
 			this->objective_value = INFINITY;
 		}
 	}
 
-	void print();
+	void print_sol();
 };
 
-class LPProblemSolver {
+class LPProblemSolver
+{
 public:
-	virtual LPProblemSolution& solve(LPProblem& problem, vector<double> support = vector<double>(0)) = 0;
+	virtual LPProblemSolution &solve(LPProblem &problem, vector<double> support = vector<double>(0)) = 0;
 };
 
-class SimplexSolver : LPProblemSolver {
+class SimplexSolver : LPProblemSolver
+{
 private:
-	vector<double> artificial_basis_method(vector<Constraint>&);
-public:
-	LPProblemSolution& solve(LPProblem& problem, vector<double> support = vector<double>(0)) override;
-};
+	vector<double> artificial_basis_method(vector<Constraint> &);
 
+public:
+	LPProblemSolution &solve(LPProblem &problem, vector<double> support = vector<double>(0)) override;
+};
