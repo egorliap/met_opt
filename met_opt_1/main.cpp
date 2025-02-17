@@ -12,8 +12,6 @@ int main() {
 	problem->add_constraint({ {-5, 1, 1, 0, 0}, 2, InequalityType::EQUAL });
 	problem->add_constraint({ {-8, 1, 2, 0, -1}, 3, InequalityType::EQUAL });
 	problem->add_constraint({ {2, 3, 5, 7, 1}, 40, InequalityType::LESS_EQUAL });
-	//problem->add_constraint({ {2, 3, -5, 7, 1}, 1, InequalityType::GREATER_EQUAL });
-
 	problem->add_constraint({ {1, 4, -6, 3, -5}, -11, InequalityType::GREATER_EQUAL});
 
 	problem->add_var_bound({ 1, BoundType::NOT_NEGATIVE });

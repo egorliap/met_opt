@@ -6,6 +6,7 @@
 #include "lp_problem_solver.h"
 #include <cmath>
 using std::vector;
+using std::pair;
 
 
 
@@ -408,8 +409,11 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     }
 
     LPProblemSolution artificial_solution = solve(*problem, solution);
-
-    return artificial_solution.solution;
+    vector<double> ans;
+    for (int i = 0; i < n; i++) {
+        ans.push_back(artificial_solution.solution[i]);
+    }
+    return ans;
 }
 
 LPProblemSolution& SimplexSolver::solve(LPProblem& problem, vector<double> support)
@@ -432,9 +436,14 @@ LPProblemSolution& SimplexSolver::solve(LPProblem& problem, vector<double> suppo
     std::cout << "A[M, N]: ";
     A.print();
     vector<int> nk;
+
+    vector<pair<int, int>> used_in_basis_change;
+    bool basis_changed = false;
     while(true) {
         std::cout << "ITERATION NUMBER " << iter << "\n\n";
-
+        if (!basis_changed) {
+            used_in_basis_change.clear();
+        }
         std::cout << "X: ";
         X.print();
        
@@ -558,19 +567,34 @@ LPProblemSolution& SimplexSolver::solve(LPProblem& problem, vector<double> suppo
             std::cout << "theta: " << theta_k << std::endl;
 
             X = X.subtract(uk * theta_k);
+            basis_changed = false;
+
         }
         else {
             bool ext = false;
-            vector<int> nk_minus_n_plus = subtract_vectors<int>(nk, n_plus);
+            vector<int> choice = subtract_vectors<int>(nk, n_plus);
+            
             for (auto& l : lk) {
-                for (auto& n : nk_minus_n_plus) {
-                    
-                    A.set_columns(concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n })));
+                for (auto& n : choice) {
+                    for (auto& p : used_in_basis_change) {
+                        if (p == pair<int,int>(n, l)) {
+                            ext = true;
+                        }
+                    }
+                    if (ext) {
+                        ext = false;
+                        continue;
+                    }
+                    vector<int> columns = concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n }));
+                    A.set_columns(columns);
                     
                     if (A.determinant(A.allocate_matrix(A.line_indexes, A.column_indexes).matrix) != 0) {
-                        nk = concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n }));
-                        ext = true;
+                        nk = columns;
+                        
                         A.set_columns(nk);
+                        used_in_basis_change.push_back({ l, n });
+                        ext = true;
+                        basis_changed = true;
                         break;
                     }
                 }
@@ -578,7 +602,6 @@ LPProblemSolution& SimplexSolver::solve(LPProblem& problem, vector<double> suppo
                     break;
                 }
             }
-
         }
         iter += 1;
     }

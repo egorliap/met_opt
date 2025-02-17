@@ -1,0 +1,10 @@
+﻿  lp_problem_solver.cpp
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(68,1): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(69,1): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(82,1): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(83,1): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(249,1): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(371,31): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(372,47): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\egorl\source\repos\met_opt_1\met_opt_1\lp_problem_solver.cpp(268): warning C4715: Matrix::get_addition_to_square_matrix: значение возвращается не при всех путях выполнения
+  met_opt_1.vcxproj -> C:\Users\egorl\source\repos\met_opt_1\x64\Debug\met_opt_1.exe
