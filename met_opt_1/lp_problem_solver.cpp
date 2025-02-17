@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "lp_problem_solver.h"
+#include <cmath>
 using std::vector;
 
 
@@ -363,15 +364,62 @@ void print_vector(const vector<int>& a) {
 }
 
 
-
-vector<double> SimplexSolver::get_support_vector()
+// first iteration to reference vector
+vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constraints)
 {
-    return vector<double>();
+    int m = constraints.size();
+    int n = constraints[0].coefficients.size();
+
+    vector<vector<double>> A(m ,vector<double>(n+m, 0));
+    vector<double> b(m, 0);
+    vector<double> c(n+m, 0);
+
+    vector<double> solution(n+m, 0);
+    vector<vector<double>> sign_correction_matrix;
+    for (int i = 0; i< m; i++){
+        b[i] = constraints[i].b;
+        if (b[i] < 0) {
+            b[i] *= -1;
+            for (int j = 0; j< n; j++) {
+                constraints[i].coefficients[j] = -constraints[i].coefficients[j];
+            }
+        }
+        for (int j = 0; j < n; j++) {
+            A[i][j] = constraints[i].coefficients[j];
+        }
+        A[i][n+i] = 1;
+        c[n+i] = 1;
+        solution[n+i] = b[i];
+    }
+
+    LPProblem* problem = new LPProblemSlack(m);
+    problem->set_objective(c, ObjectiveType::MINIMIZE);
+    for (int i = 0; i < m; i++) {
+        
+        Constraint constraint;
+        constraint.coefficients = A[i];
+        constraint.b = b[i];
+        constraint.type = InequalityType::EQUAL;
+        problem->add_constraint(constraint);
+    }
+
+    for (int i = 0; i < n+m; i++) {
+        problem->add_var_bound({ i+1, BoundType::NOT_NEGATIVE });
+    }
+
+    LPProblemSolution artificial_solution = solve(*problem, solution);
+
+    return artificial_solution.solution;
 }
 
-LPProblemSolution& SimplexSolver::solve(LPProblem& problem)
-{
-    vector<double> support = { 0, 0, 0, 12, 18};
+LPProblemSolution& SimplexSolver::solve(LPProblem& problem, vector<double> support)
+{  
+
+    if (support.empty()){
+        auto constraints = problem.get_constraints();
+        support = artificial_basis_method(constraints);
+    }
+
     Matrix X(support);
 
     vector<vector<double>> A_;

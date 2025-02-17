@@ -37,18 +37,18 @@ void LPProblem::set_objective(const std::vector<double>& coeffs, ObjectiveType t
 
 void LPProblem::add_constraint(const Constraint& c)
 {
-    if (c.coefficients.size() > n) {
-        throw;
-    }
+    // if (c.coefficients.size() > n) {
+    //     throw;
+    // }
     constraints.push_back(c);
 }
 
 
 void LPProblem::add_var_bound(const VariableBound& vb)
 {
-    if (vb.component > n || vb.component < 1) {
-        throw;
-    }
+    // if (vb.component > n || vb.component < 1) {
+    //     throw;
+    // }
     bounds.push_back(vb);
 }
 

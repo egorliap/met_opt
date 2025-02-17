@@ -1,5 +1,6 @@
 #include <vector>
 #include "lp_problem.h"
+#include <cmath>
 using std::vector;
 
 enum Status {
@@ -7,11 +8,10 @@ enum Status {
 };
 
 class LPProblemSolution {
-private:
+public:
 	Status status;
 	vector<double> solution;
 	double objective_value;
-public:
 	LPProblemSolution(Status status, vector<double> solution = {}, double objective_value = 0) {
 		this->status = status;
 		if (status == Status::OPTIMAL) {
@@ -33,13 +33,13 @@ public:
 
 class LPProblemSolver {
 public:
-	virtual LPProblemSolution& solve(LPProblem& problem) = 0;
+	virtual LPProblemSolution& solve(LPProblem& problem, vector<double> support = vector<double>(0)) = 0;
 };
 
 class SimplexSolver : LPProblemSolver {
 private:
-	vector<double> get_support_vector();
+	vector<double> artificial_basis_method(vector<Constraint>&);
 public:
-	LPProblemSolution& solve(LPProblem& problem) override;
+	LPProblemSolution& solve(LPProblem& problem, vector<double> support = vector<double>(0)) override;
 };
 
