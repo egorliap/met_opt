@@ -269,7 +269,7 @@ public:
         vector<vector<double>> ans(line_indexes.size(), vector<double>(column_indexes.size()));
         for (int i = 0; i < line_indexes.size(); i++) {
             for (int j = 0; j < column_indexes.size(); j++) {
-                ans[i][j] = std::round((matrix[line_indexes[i]][column_indexes[j]] - a.matrix[a.line_indexes[i]][a.column_indexes[j]])*1000)/1000;
+                ans[i][j] = std::round((matrix[line_indexes[i]][column_indexes[j]] - a.matrix[a.line_indexes[i]][a.column_indexes[j]])*10000000)/10000000;
             }
         }
         Matrix* ret = new Matrix(ans);
@@ -303,9 +303,7 @@ public:
         }
         return true;
     }
-    bool operator> (const Matrix& rhs) { return  operator< (rhs); }
-    bool operator<=(const Matrix& rhs) { return !operator> (rhs); }
-    bool operator>=(const Matrix& rhs) { return !operator< (rhs); }
+
     bool operator>(double num) {
         for (int i = 0; i < line_indexes.size(); i++) {
             for (int j = 0; j < column_indexes.size(); j++) {
@@ -373,7 +371,7 @@ vector<double> SimplexSolver::get_support_vector()
 
 LPProblemSolution& SimplexSolver::solve(LPProblem& problem)
 {
-    vector<double> support = { 0, 0, 0, 1, 1};
+    vector<double> support = { 0, 0, 0, 12, 18};
     Matrix X(support);
 
     vector<vector<double>> A_;
@@ -520,7 +518,7 @@ LPProblemSolution& SimplexSolver::solve(LPProblem& problem)
                 for (auto& n : nk_minus_n_plus) {
                     
                     A.set_columns(concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n })));
-                    A.print();
+                    
                     if (A.determinant(A.allocate_matrix(A.line_indexes, A.column_indexes).matrix) != 0) {
                         nk = concatenate_vectors<int>({ l }, subtract_vectors<int>(nk, { n }));
                         ext = true;
