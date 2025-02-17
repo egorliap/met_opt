@@ -1,103 +1,154 @@
-#include <exception>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <utility>
 #include "lp_problem_parser.h"
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <stdexcept>
+#include <algorithm>
 
-std::pair<int, int> LPProblemParser::parse_dims(const string& str_dims)
+using namespace std;
+
+namespace
 {
-	std::istringstream iss(str_dims);
-	int first, second;
-	iss >> first >> second;
-	return std::make_pair(first, second);
 
-}
+	struct VarBoundInfo
+	{
+		int var_index;
+		BoundType type;
+	};
 
-ObjectiveType LPProblemParser::parse_objective_type(const string& str_objective_type)
-{
-	return (str_objective_type.compare("max") != 0) ? ObjectiveType::MAXIMIZE : ObjectiveType::MINIMIZE;
-}
+	VarBoundInfo parseVarBound(const string &line, int n_vars)
+	{
+		istringstream iss(line);
+		string var_part, op, val;
+		iss >> var_part >> op >> val;
 
-vector<double> LPProblemParser::parse_objective(const string& str_objective)
-{
-	vector<double> numbers;
-	std::istringstream iss(str_objective);
-	double number;
+		if (var_part.empty() || var_part[0] != 'x')
+			throw runtime_error("Invalid variable format: " + var_part);
+		int var_num = stoi(var_part.substr(1));
 
-	while (iss >> number) {
-		numbers.push_back(number);
+		if (op != ">=" || val != "0")
+			throw runtime_error("Unsupported bound: " + op + " " + val);
+
+		if (var_num < 1 || var_num > n_vars)
+			throw runtime_error("Variable index out of range: x" + to_string(var_num));
+
+		return {var_num, BoundType::NOT_NEGATIVE};
 	}
 
-	return numbers;
-}
+} // namespace
 
-Constraint LPProblemParser::parse_constraint(const string& str_constraint, int n)
+vector<string> LPProblemParser::split(const string &s)
 {
-	std::istringstream iss(str_constraint);
-	std::vector<double> coefs;
-	double b;
-
-	for (int i = 0; i < n; ++i) {
-		double a;
-		iss >> a;
-		coefs.push_back(a);
-	}
-
-	string ineq;
-	iss >> ineq;
-	iss >> b;
-	InequalityType constraint_type{};
-
-	if (ineq.compare("<=") == 0) {
-		constraint_type = InequalityType::LESS_EQUAL;
-	}else if (ineq.compare(">=") == 0) {
-		constraint_type = InequalityType::GREATER_EQUAL;
-	}else if (ineq.compare("=") == 0) {
-		constraint_type = InequalityType::EQUAL;
-	}
-	return Constraint({ coefs, b, constraint_type });
+	vector<string> tokens;
+	istringstream iss(s);
+	string token;
+	while (iss >> token)
+		tokens.push_back(token);
+	return tokens;
 }
 
-VariableBound LPProblemParser::parse_var_bound(const string& str_var_bound)
+InequalityType LPProblemParser::parseInequalityType(const string &op)
 {
-	return VariableBound();
+	if (op == "==")
+		return InequalityType::EQUAL;
+	if (op == "<=")
+		return InequalityType::LESS_EQUAL;
+	if (op == ">=")
+		return InequalityType::GREATER_EQUAL;
+	throw invalid_argument("Invalid operator: " + op);
 }
 
-void LPProblemParser::parse(LPProblem& problem) {
+LPProblemSlack *LPProblemParser::parse(const string &filename)
+{
+	ifstream file(filename);
+	if (!file)
+		throw runtime_error("Cannot open file: " + filename);
+
+	// Read n and m
 	string line;
-	line = reader.read_line();
-	std::pair<int, int> dims = parse_dims(line);
-	int n = dims.first; int m = dims.second;
-	problem.set_solution_dim(n);
+	getline(file, line);
+	auto tokens = split(line);
+	if (tokens.size() != 2)
+		throw runtime_error("Invalid n m format");
+	int n = stoi(tokens[0]), m = stoi(tokens[1]);
 
-	line = reader.read_line();
-	ObjectiveType objective_type = parse_objective_type(line);
-	
-	line = reader.read_line();
-	vector<double> objective = parse_objective(line);
+	// Read objective type
+	getline(file, line);
+	ObjectiveType objType = (line == "min") ? ObjectiveType::MINIMIZE : ObjectiveType::MAXIMIZE;
 
-	for (int i = 0; i < m; i++) {
-		line = reader.read_line();
-		problem.add_constraint(parse_constraint(line, n));
-	}
-	for (int i = 0; i < n; i++) {
-		try {
-			line = reader.read_line();
-		}
-		catch (std::iostream::failure) {
+	// Read objective coefficients
+	getline(file, line);
+	tokens = split(line);
+	if (tokens.size() != n)
+		throw runtime_error("Invalid objective coefficients count");
+	vector<double> c(n);
+	transform(tokens.begin(), tokens.end(), c.begin(), [](const string &s)
+			  { return stod(s); });
+
+	// Read constraints
+	vector<Constraint> constraints;
+	int eqCount = 0, leCount = 0, geCount = 0;
+	for (int i = 0; i < m; ++i)
+	{
+		getline(file, line);
+		tokens = split(line);
+		if (tokens.size() != n + 2)
+			throw runtime_error("Invalid constraint format");
+
+		vector<double> coeffs(n);
+		transform(tokens.begin(), tokens.begin() + n, coeffs.begin(), [](const string &s)
+				  { return stod(s); });
+
+		InequalityType type = parseInequalityType(tokens[n]);
+		double rhs = stod(tokens[n + 1]);
+
+		// Создаём объект основного Constraint
+		Constraint c;
+		c.coefficients = move(coeffs);
+		c.b = rhs; // Используем поле b вместо rhs
+		c.type = type;
+
+		constraints.push_back(c);
+
+		switch (type)
+		{
+		case InequalityType::EQUAL:
+			eqCount++;
+			break;
+		case InequalityType::LESS_EQUAL:
+			leCount++;
+			break;
+		case InequalityType::GREATER_EQUAL:
+			geCount++;
 			break;
 		}
-		problem.add_var_bound(parse_var_bound(line));
 	}
-}
 
-string FileReader::read_line()
-{
-	return string();
-}
+	if (eqCount != 3 || (leCount + geCount) != 2)
+		throw runtime_error("Constraints must have 3 equalities and 2 inequalities");
 
-string STDInputReader::read_line()
-{
-	return string();
+	// Read variable bounds
+	vector<VarBoundInfo> varBounds;
+	while (getline(file, line))
+	{
+		if (line.empty())
+			continue;
+		varBounds.push_back(parseVarBound(line, n));
+	}
+
+	if (varBounds.size() != 4)
+		throw runtime_error("Exactly 4 variables must have bounds");
+
+	// Create problem
+	LPProblemSlack *problem = new LPProblemSlack(n);
+	problem->set_objective(c, objType);
+	for (const auto &con : constraints)
+	{
+		problem->add_constraint(con); // Теперь типы совпадают
+	}
+
+	for (const auto &vb : varBounds)
+		problem->add_var_bound({vb.var_index, vb.type});
+
+	return problem;
 }

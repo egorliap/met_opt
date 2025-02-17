@@ -1,9 +1,9 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -lm
 
-SRC = lp_problem_parser.cpp lp_problem_solver.cpp lp_problem.cpp main.cpp
+SRC = lp_problem_parser.cpp lp_problem_solver.cpp lp_problem.cpp matrix.cpp main.cpp utils.cpp
 OBJ = $(SRC:.cpp=.o)
-DEPS = lp_problem_parser.h lp_problem_solver.h lp_problem.h
+DEPS = lp_problem_parser.h lp_problem_solver.h lp_problem.h matrix.h utils.h
 
 TARGET = program
 
