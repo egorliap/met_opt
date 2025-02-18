@@ -57,6 +57,28 @@ InequalityType LPProblemParser::parseInequalityType(const string &op)
 		return InequalityType::GREATER_EQUAL;
 	throw invalid_argument("Invalid operator: " + op);
 }
+int isSubstring(string s1, string s2)
+{
+	int M = s1.length();
+	int N = s2.length();
+
+	/* A loop to slide pat[] one
+	   by one */
+	for (int i = 0; i <= N - M; i++)
+	{
+		int j;
+
+		/* For current index i, check for
+		   pattern match */
+		for (j = 0; j < M; j++)
+			if (s2[i + j] != s1[j])
+				break;
+
+		if (j == M)
+			return i;
+	}
+	return -1;
+}
 
 LPProblemSlack *LPProblemParser::parse(const string &filename)
 {
@@ -64,8 +86,9 @@ LPProblemSlack *LPProblemParser::parse(const string &filename)
 	if (!file)
 		throw runtime_error("Cannot open file: " + filename);
 
-	// Read n and m
 	string line;
+
+	// Read n and m
 	getline(file, line);
 	auto tokens = split(line);
 	if (tokens.size() != 2)
@@ -74,7 +97,7 @@ LPProblemSlack *LPProblemParser::parse(const string &filename)
 
 	// Read objective type
 	getline(file, line);
-	ObjectiveType objType = (line == "min") ? ObjectiveType::MINIMIZE : ObjectiveType::MAXIMIZE;
+	ObjectiveType objType = (isSubstring("min",line) != -1) ? ObjectiveType::MINIMIZE : ObjectiveType::MAXIMIZE;
 
 	// Read objective coefficients
 	getline(file, line);
