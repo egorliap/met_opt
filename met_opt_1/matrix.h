@@ -43,6 +43,11 @@ public:
     Matrix &operator*(double num);
     int column_size();
 
+
+    void gaussian_elimination();
+    int compute_rank();
+    bool is_full_rank();
+
 private:
     std::vector<std::vector<double>> create_augmented_matrix(size_t size);
     void gauss_jordan_elimination(std::vector<std::vector<double>> &augmented);

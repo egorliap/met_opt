@@ -20,20 +20,38 @@ void run_interface()
 	while (true)
 	{
 		int opt;
-		std::cout << "Choose option:\n1 - print problem\n2 - convert problem to cannonical from\n3 - get dual problem (and set as main problem)\n4 - solve problem with step-by-step logs\n5 - solve problem without step-by-step logs\n6 - exit\n" << std::endl;
+		std::cout << "Choose option:\n1 - print problem\n2 - convert problem to cannonical from\n3 - get dual problem (and set as main problem)\n4 - solve problem with step-by-step logs\n5 - solve problem without step-by-step logs\n6 - exit\n"
+				  << std::endl;
 		std::cin >> opt;
 		switch (opt)
 		{
-		case 1:{
+		case 1:
+		{
 			problem->print_problem();
-			break;}
-		case 2:{
+			break;
+		}
+		case 2:
+		{
 			problem->convert();
-			break;}
-		case 3:{
+			break;
+		}
+		case 3:
+		{
 			problem = &problem->dual();
-			
-			break;}
+
+			break;
+		}
+		case 4:
+		{
+			SimplexSolver solver;
+			LPProblemSolution solution = solver.solve(*problem);
+			solution.print_sol();
+			break;
+		}
+		case 6:
+		{
+			exit(1);
+		}
 		default:
 			break;
 		}

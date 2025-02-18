@@ -92,14 +92,32 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
 
 LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> support)
 {
-    int m;
+
+    vector<vector<double>> A_tmp;
+    for (auto &constr : problem.get_constraints())
+    {
+        A_tmp.push_back(constr.coefficients);
+    }
+    Matrix A2(A_tmp);
+
+    // Проверка условия A.shape[0] <= A.shape[1]
+    if (A2.matrix.size() > A2.matrix[0].size())
+    {
+        throw std::runtime_error("The number of rows in matrix A must be less than or equal to the number of columns.");
+    }
+
+        // Проверка, что матрица A полного ранга
+    if (!(A2.is_full_rank()))
+    {
+        throw std::runtime_error("Matrix A must be of full rank.");
+    }
 
     if (support.empty())
     {
         auto constraints = problem.get_constraints();
         support = artificial_basis_method(constraints);
     }
-    std::cin >> m;
+
     Matrix X(support);
 
     vector<vector<double>> A_;
@@ -304,7 +322,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                 break;
             }
         }
-        
+
         std::cout << "jk: ";
         print_vector(jk);
 

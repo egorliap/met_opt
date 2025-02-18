@@ -159,7 +159,7 @@ Matrix &Matrix::get_inverse_matrix()
         double pivot = augmented[i][i];
         for (size_t j = 0; j < 2 * line_indexes.size(); ++j)
         {
-            augmented[i][j] = (augmented[i][j]/pivot);
+            augmented[i][j] = (augmented[i][j] / pivot);
         }
 
         for (size_t k = 0; k < line_indexes.size(); ++k)
@@ -400,7 +400,94 @@ vector<int> Matrix::get_addition_to_square_matrix(vector<int> &available_indexes
     }
 }
 
-int Matrix::column_size() {
-    if (matrix.empty()) return 0;
+int Matrix::column_size()
+{
+    if (matrix.empty())
+        return 0;
     return matrix[0].size();
+}
+
+void Matrix::gaussian_elimination()
+{
+    int rank = 0;
+    for (size_t col = 0; col < column_indexes.size() && rank < line_indexes.size(); ++col)
+    {
+        // Поиск строки с максимальным элементом в текущем столбце
+        size_t max_row = rank;
+        for (size_t row = rank + 1; row < line_indexes.size(); ++row)
+        {
+            if (abs(matrix[line_indexes[row]][column_indexes[col]]) >
+                abs(matrix[line_indexes[max_row]][column_indexes[col]]))
+            {
+                max_row = row;
+            }
+        }
+
+        // Если максимальный элемент равен нулю, пропускаем столбец
+        if (matrix[line_indexes[max_row]][column_indexes[col]] == 0)
+        {
+            continue;
+        }
+
+        // Меняем строки местами
+        if (max_row != rank)
+        {
+            std::swap(line_indexes[max_row], line_indexes[rank]);
+        }
+
+        // Нормализация текущей строки
+        double pivot = matrix[line_indexes[rank]][column_indexes[col]];
+        for (size_t j = col; j < column_indexes.size(); ++j)
+        {
+            matrix[line_indexes[rank]][column_indexes[j]] /= pivot;
+        }
+
+        // Обнуление элементов ниже текущего
+        for (size_t row = rank + 1; row < line_indexes.size(); ++row)
+        {
+            double factor = matrix[line_indexes[row]][column_indexes[col]];
+            for (size_t j = col; j < column_indexes.size(); ++j)
+            {
+                matrix[line_indexes[row]][column_indexes[j]] -=
+                    factor * matrix[line_indexes[rank]][column_indexes[j]];
+            }
+        }
+
+        // Увеличиваем ранг
+        rank++;
+    }
+}
+
+int Matrix::compute_rank()
+{
+    // Создаем копию матрицы, чтобы не изменять оригинальную
+    Matrix temp(*this);
+    temp.gaussian_elimination();
+
+    // Подсчет ненулевых строк
+    int rank = 0;
+    for (size_t row = 0; row < temp.line_indexes.size(); ++row)
+    {
+        bool is_non_zero = false;
+        for (size_t col = 0; col < temp.column_indexes.size(); ++col)
+        {
+            if (temp.matrix[temp.line_indexes[row]][temp.column_indexes[col]] != 0)
+            {
+                is_non_zero = true;
+                break;
+            }
+        }
+        if (is_non_zero)
+        {
+            rank++;
+        }
+    }
+    return rank;
+}
+
+bool Matrix::is_full_rank()
+{
+    int rank = compute_rank();
+    int min_dim = std::min(line_indexes.size(), column_indexes.size());
+    return rank == min_dim;
 }
