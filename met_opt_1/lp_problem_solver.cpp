@@ -33,6 +33,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
+        }
         A[i][n + i] = 1;
         c[n + i] = 1;
         solution[n + i] = b[i];
