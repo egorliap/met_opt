@@ -10,6 +10,7 @@ void run_interface()
 	try
 	{
 		LPProblemSlack *problem = LPProblemParser::parse(filename);
+		problem->print_problem();
 		problem->convert();
 		problem->print_problem();
 

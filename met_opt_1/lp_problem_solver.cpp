@@ -5,6 +5,7 @@
 #include "lp_problem_solver.h"
 #include <cmath>
 #include <iomanip>
+#include <string>
 
 using std::pair;
 using std::vector;
@@ -33,6 +34,9 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
+            for (int j = 0; j < n+m; j++){
+                A[i][j] *= -1;
+            }
         }
         A[i][n + i] = 1;
         c[n + i] = 1;
