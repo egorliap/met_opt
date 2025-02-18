@@ -39,17 +39,17 @@ struct VariableBound
 // Базовый класс задачи ЛП
 class LPProblem
 {
-protected:
+public:
+
     int n;
 
     ObjectiveType objective_type;
     vector<double> objective;
     vector<Constraint> constraints;
     vector<VariableBound> bounds;
-
-public:
     LPProblem();
     LPProblem(int n);
+    LPProblem(LPProblem& problem);
     LPProblem(vector<double> objective, ObjectiveType objective_type = ObjectiveType::MINIMIZE);
     void set_solution_dim(int n);
     void set_objective(const std::vector<double> &coeffs, ObjectiveType type);
@@ -81,7 +81,6 @@ class LPProblemSlack : public LPProblemGeneral
 {
 public:
     using LPProblemGeneral::LPProblemGeneral;
-
     // Converts base (or general) linear problem to slack
     void convert() override;
 

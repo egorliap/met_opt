@@ -14,6 +14,13 @@ LPProblem::LPProblem(int n)
     this->n = n;
 }
 
+LPProblem::LPProblem(LPProblem &problem)
+{
+    this->n = problem.objective.size();
+    this->objective = problem.objective;
+    this->objective_type = problem.objective_type;
+}
+
 LPProblem::LPProblem(vector<double> objective, ObjectiveType objective_type)
 {
     this->n = objective.size();
@@ -177,7 +184,7 @@ void LPProblemGeneral::convert()
 
 LPProblem &LPProblemGeneral::dual()
 {
-    this->convert();
+    LPProblemGeneral::convert();
 
     int m = constraints.size();
     LPProblemGeneral *dual_problem = new LPProblemGeneral(m);
@@ -296,11 +303,15 @@ void LPProblemSlack::convert()
 
 LPProblem &LPProblemSlack::dual()
 {
-    vector<double> dual_objective;
-    int m = constraints.size();
+    LPProblem& dual_problem = LPProblemGeneral::dual();
+    dual_problem.print_problem();
+    LPProblemSlack* dual_problem_slack = new LPProblemSlack(dual_problem.objective, dual_problem.objective_type);
+    for (auto& constr : dual_problem.constraints){
+        dual_problem_slack->add_constraint(constr);
+    }
+    for (auto& b : dual_problem.bounds){
+        dual_problem_slack->add_var_bound(b);
+    }
 
-    LPProblemSlack *dual_problem = new LPProblemSlack(m);
-    this->convert();
-
-    return *dual_problem;
+    return *dual_problem_slack;
 }
