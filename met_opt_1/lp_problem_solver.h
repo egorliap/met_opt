@@ -49,7 +49,7 @@ public:
 	virtual LPProblemSolution &solve(LPProblem &problem, vector<double> support = vector<double>(0)) = 0;
 };
 
-class SimplexSolver : LPProblemSolver
+class SimplexSolver : public LPProblemSolver
 {
 private:
 	vector<double> artificial_basis_method(vector<Constraint> &);
