@@ -25,7 +25,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     vector<double> solution(n + m, 0);
     for (int i = 0; i < m; i++)
     {
-       
+
         for (int j = 0; j < n; j++)
         {
             A[i][j] = constraints[i].coefficients[j];
@@ -34,11 +34,16 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
-            for (int j = 0; j < n+m; j++){
+            for (int j = 0; j < n + m; j++)
+            {
                 A[i][j] *= -1;
             }
+            A[i][n + i] = -1;
         }
-        A[i][n + i] = 1;
+        else
+        {
+            A[i][n + i] = 1;
+        }
         c[n + i] = 1;
         solution[n + i] = b[i];
     }
@@ -59,7 +64,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     {
         problem->add_var_bound({i + 1, BoundType::NOT_NEGATIVE});
     }
-
+    problem->print_problem();
     LPProblemSolution artificial_solution = solve(*problem, solution);
 
     bool infeasible = false;
@@ -261,7 +266,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         std::cout << "\n";
 
         std::cout << std::setw(column_widths.back()) << obj_value << "\n\n";
-                // Вывод разделителя
+        // Вывод разделителя
         for (size_t width : column_widths)
         {
             std::cout << std::string(width + 2, '-') << "+";
