@@ -1,3 +1,9 @@
 *.o
 .vscode
 .vs
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+x64
+*.hint
