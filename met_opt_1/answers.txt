@@ -7,6 +7,6 @@ test6 err
 test7 0 10 0 5 7 0 5 4 : 5
 test8 2 6 0 7 8 0 0 5 : -11
 test9 err
-test10 5 5 5 0 10 0 3 0 : 25
+test10 : -94
 
 input 0 2 0 3 0 1 14 33 : 2

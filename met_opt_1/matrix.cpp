@@ -110,7 +110,7 @@ Matrix &Matrix::multiply(const Matrix &a)
 
             for (int j = 0; j < column_indexes.size(); j++)
             {
-                result[i][k] += line[column_indexes[j]] * a.matrix[a.line_indexes[j]][a.column_indexes[k]];
+                result[i][k] += (line[column_indexes[j]] * a.matrix[a.line_indexes[j]][a.column_indexes[k]]);
             }
         }
     }
@@ -159,7 +159,7 @@ Matrix &Matrix::get_inverse_matrix()
         double pivot = augmented[i][i];
         for (size_t j = 0; j < 2 * line_indexes.size(); ++j)
         {
-            augmented[i][j] /= pivot;
+            augmented[i][j] = (augmented[i][j]/pivot);
         }
 
         for (size_t k = 0; k < line_indexes.size(); ++k)

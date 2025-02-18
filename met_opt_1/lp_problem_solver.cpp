@@ -159,7 +159,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         A.set_columns(n_plus);
         std::cout << "A[M, N+]: ";
         A.print();
-        if (nk.empty())
+        if (nk.empty() || !basis_changed)
         {
             nk = A.get_addition_to_square_matrix(n_zero);
         }
