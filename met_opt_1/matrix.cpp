@@ -399,3 +399,8 @@ vector<int> Matrix::get_addition_to_square_matrix(vector<int> &available_indexes
         }
     }
 }
+
+int Matrix::column_size() {
+    if (matrix.empty()) return 0;
+    return matrix[0].size();
+}
