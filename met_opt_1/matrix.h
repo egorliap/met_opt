@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
+
 #include "utils.h"
 
 using std::vector;
@@ -40,6 +41,7 @@ public:
     bool operator<=(double num);
     bool operator>=(double num);
     Matrix &operator*(double num);
+    int column_size();
 
 private:
     std::vector<std::vector<double>> create_augmented_matrix(size_t size);

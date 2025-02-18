@@ -4,10 +4,10 @@
 #include <algorithm>
 #include "lp_problem_solver.h"
 #include <cmath>
+#include <iomanip>
 
 using std::pair;
 using std::vector;
-
 
 // first iteration to reference vector
 vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constraints)
@@ -18,6 +18,8 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     vector<vector<double>> A(m, vector<double>(n + m, 0));
     vector<double> b(m, 0);
     vector<double> c(n + m, 0);
+
+    vector<Constraint> tmp(constraints);
 
     vector<double> solution(n + m, 0);
     for (int i = 0; i < m; i++)
@@ -31,17 +33,12 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
-            for (int j = 0; j < n + m; j++)
-            {
-                A[i][j] *= -1;
-            }
-        }
         A[i][n + i] = 1;
         c[n + i] = 1;
         solution[n + i] = b[i];
     }
 
-    LPProblem *problem = new LPProblemSlack(m);
+    LPProblem *problem = new LPProblemSlack(m + n);
     problem->set_objective(c, ObjectiveType::MINIMIZE);
     for (int i = 0; i < m; i++)
     {
@@ -59,11 +56,27 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     }
 
     LPProblemSolution artificial_solution = solve(*problem, solution);
+
+    bool infeasible = false;
+    for (int i = n; i < n + m; ++i)
+    {
+        if (artificial_solution.solution[i] > 0)
+        { // Учет вычислительной погрешности
+            infeasible = true;
+            break;
+        }
+    }
+    if (infeasible)
+    {
+        throw std::runtime_error("Problem is infeasible");
+    }
+
     vector<double> ans;
     for (int i = 0; i < n; i++)
     {
         ans.push_back(artificial_solution.solution[i]);
     }
+
     return ans;
 }
 
@@ -158,6 +171,98 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
         std::cout << "dkt: ";
         dkt.print();
+
+        // Вывод симплекс-таблицы
+        std::cout << "\nSimplex Tableau:\n";
+
+        // Восстановить все столбцы в A
+        A.set_columns(n_all);
+
+        // Вычислить коэффициенты таблицы: B * A
+        Matrix tableau_coeff = B.multiply(A);
+
+        // Получить RHS из X для базисных переменных
+        vector<double> rhs;
+        for (int i : nk)
+        {
+            rhs.push_back(X.matrix[i][0]);
+        }
+
+        // Определить ширину каждого столбца
+        vector<size_t> column_widths(tableau_coeff.column_size() + 2, 0); // +2 для Basis и RHS
+
+        // Ширина столбца Basis
+        column_widths[0] = 5; // "Basis" занимает 5 символов
+
+        // Ширина столбцов переменных
+        for (int j = 0; j < tableau_coeff.column_size(); ++j)
+        {
+            column_widths[j + 1] = 6; // "x1", "x2", и т.д. + числа
+            for (size_t i = 0; i < tableau_coeff.matrix.size(); ++i)
+            {
+                size_t value_length = std::to_string(tableau_coeff.matrix[i][j]).length();
+                if (value_length > column_widths[j + 1])
+                {
+                    column_widths[j + 1] = value_length;
+                }
+            }
+        }
+
+        // Ширина столбца RHS
+        column_widths.back() = 6; // "RHS" занимает 6 символов
+        for (double value : rhs)
+        {
+            size_t value_length = std::to_string(value).length();
+            if (value_length > column_widths.back())
+            {
+                column_widths.back() = value_length;
+            }
+        }
+
+        // Вывести заголовок таблицы
+        std::cout << std::setw(column_widths[0]) << "Basis" << " | ";
+        for (int j = 0; j < tableau_coeff.column_size(); ++j)
+        {
+            std::cout << std::setw(column_widths[j + 1]) << "x" << (j + 1) << " | ";
+        }
+        std::cout << std::setw(column_widths.back()) << "RHS" << "\n";
+
+        // Вывод разделителя
+        for (size_t width : column_widths)
+        {
+            std::cout << std::string(width + 2, '-') << "+";
+        }
+        std::cout << "\n";
+
+        // Вывод строк базисных переменных
+        for (size_t i = 0; i < nk.size(); ++i)
+        {
+            std::cout << std::setw(column_widths[0]) << "x" << (nk[i] + 1) << " | ";
+            for (int j = 0; j < tableau_coeff.column_size(); ++j)
+            {
+                std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << tableau_coeff.matrix[i][j] << " | ";
+            }
+            std::cout << std::setw(column_widths.back()) << rhs[i] << "\n";
+        }
+
+        // Вывод целевой строки
+        double obj_value = c.transpose().multiply(X).matrix[0][0];
+        std::cout << std::setw(column_widths[0]) << "z" << " | ";
+        for (int j = 0; j < dkt.matrix[0].size(); ++j)
+        {
+            std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << dkt.matrix[0][j] << " | ";
+        }
+
+        std::cout << "\n";
+
+        std::cout << std::setw(column_widths.back()) << obj_value << "\n\n";
+                // Вывод разделителя
+        for (size_t width : column_widths)
+        {
+            std::cout << std::string(width + 2, '-') << "+";
+        }
+        std::cin.get();
+
         Matrix dklkt = dkt.allocate_matrix({0}, lk);
 
         std::cout << "dklkt: ";
