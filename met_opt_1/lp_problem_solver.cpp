@@ -34,7 +34,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         if (b[i] < 0)
         {
             b[i] *= -1;
-            for (int j = 0; j < n + m; j++)
+            for (int j = 0; j < n; j++)
             {
                 A[i][j] *= -1;
             }
@@ -70,7 +70,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     bool infeasible = false;
     for (int i = n; i < n + m; ++i)
     {
-        if (artificial_solution.solution[i] > 0)
+        if (artificial_solution.solution[i] < 0)
         { // Учет вычислительной погрешности
             infeasible = true;
             break;
@@ -93,6 +93,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
 LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> support)
 {
     int m;
+
     if (support.empty())
     {
         auto constraints = problem.get_constraints();
@@ -112,16 +113,26 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
     std::cout << "A[M, N]: ";
     A.print();
     vector<int> nk;
+    vector<int> jk_used;
 
     vector<pair<int, int>> used_in_basis_change;
     bool basis_changed = false;
     while (true)
     {
+        std::cin.get();
+
         std::cout << "ITERATION NUMBER " << iter << "\n\n";
         if (!basis_changed)
         {
             used_in_basis_change.clear();
         }
+
+        std::cout << "USED IN BASIS:\n";
+        for (auto &p : used_in_basis_change)
+        {
+            std::cout << "(" << p.first << ", " << p.second << ")\n";
+        }
+
         std::cout << "X: ";
         X.print();
 
@@ -182,96 +193,96 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         std::cout << "dkt: ";
         dkt.print();
 
-        // Вывод симплекс-таблицы
-        std::cout << "\nSimplex Tableau:\n";
+        // // Вывод симплекс-таблицы
+        // std::cout << "\nSimplex Tableau:\n";
 
-        // Восстановить все столбцы в A
-        A.set_columns(n_all);
+        // // Восстановить все столбцы в A
+        // A.set_columns(n_all);
 
-        // Вычислить коэффициенты таблицы: B * A
-        Matrix tableau_coeff = B.multiply(A);
+        // // Вычислить коэффициенты таблицы: B * A
+        // Matrix tableau_coeff = B.multiply(A);
 
-        // Получить RHS из X для базисных переменных
-        vector<double> rhs;
-        for (int i : nk)
-        {
-            rhs.push_back(X.matrix[i][0]);
-        }
+        // // Получить RHS из X для базисных переменных
+        // vector<double> rhs;
+        // for (int i : nk)
+        // {
+        //     rhs.push_back(X.matrix[i][0]);
+        // }
 
-        // Определить ширину каждого столбца
-        vector<size_t> column_widths(tableau_coeff.column_size() + 2, 0); // +2 для Basis и RHS
+        // // Определить ширину каждого столбца
+        // vector<size_t> column_widths(tableau_coeff.column_size() + 2, 0); // +2 для Basis и RHS
 
-        // Ширина столбца Basis
-        column_widths[0] = 5; // "Basis" занимает 5 символов
+        // // Ширина столбца Basis
+        // column_widths[0] = 5; // "Basis" занимает 5 символов
 
-        // Ширина столбцов переменных
-        for (int j = 0; j < tableau_coeff.column_size(); ++j)
-        {
-            column_widths[j + 1] = 6; // "x1", "x2", и т.д. + числа
-            for (size_t i = 0; i < tableau_coeff.matrix.size(); ++i)
-            {
-                size_t value_length = std::to_string(tableau_coeff.matrix[i][j]).length();
-                if (value_length > column_widths[j + 1])
-                {
-                    column_widths[j + 1] = value_length;
-                }
-            }
-        }
+        // // Ширина столбцов переменных
+        // for (int j = 0; j < tableau_coeff.column_size(); ++j)
+        // {
+        //     column_widths[j + 1] = 6; // "x1", "x2", и т.д. + числа
+        //     for (size_t i = 0; i < tableau_coeff.matrix.size(); ++i)
+        //     {
+        //         size_t value_length = std::to_string(tableau_coeff.matrix[i][j]).length();
+        //         if (value_length > column_widths[j + 1])
+        //         {
+        //             column_widths[j + 1] = value_length;
+        //         }
+        //     }
+        // }
 
-        // Ширина столбца RHS
-        column_widths.back() = 6; // "RHS" занимает 6 символов
-        for (double value : rhs)
-        {
-            size_t value_length = std::to_string(value).length();
-            if (value_length > column_widths.back())
-            {
-                column_widths.back() = value_length;
-            }
-        }
+        // // Ширина столбца RHS
+        // column_widths.back() = 6; // "RHS" занимает 6 символов
+        // for (double value : rhs)
+        // {
+        //     size_t value_length = std::to_string(value).length();
+        //     if (value_length > column_widths.back())
+        //     {
+        //         column_widths.back() = value_length;
+        //     }
+        // }
 
-        // Вывести заголовок таблицы
-        std::cout << std::setw(column_widths[0]) << "Basis" << " | ";
-        for (int j = 0; j < tableau_coeff.column_size(); ++j)
-        {
-            std::cout << std::setw(column_widths[j + 1]) << "x" << (j + 1) << " | ";
-        }
-        std::cout << std::setw(column_widths.back()) << "RHS" << "\n";
+        // // Вывести заголовок таблицы
+        // std::cout << std::setw(column_widths[0]) << "Basis" << " | ";
+        // for (int j = 0; j < tableau_coeff.column_size(); ++j)
+        // {
+        //     std::cout << std::setw(column_widths[j + 1]) << "x" << (j + 1) << " | ";
+        // }
+        // std::cout << std::setw(column_widths.back()) << "RHS" << "\n";
 
-        // Вывод разделителя
-        for (size_t width : column_widths)
-        {
-            std::cout << std::string(width + 2, '-') << "+";
-        }
-        std::cout << "\n";
+        // // Вывод разделителя
+        // for (size_t width : column_widths)
+        // {
+        //     std::cout << std::string(width + 2, '-') << "+";
+        // }
+        // std::cout << "\n";
 
-        // Вывод строк базисных переменных
-        for (size_t i = 0; i < nk.size(); ++i)
-        {
-            std::cout << std::setw(column_widths[0]) << "x" << (nk[i] + 1) << " | ";
-            for (int j = 0; j < tableau_coeff.column_size(); ++j)
-            {
-                std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << tableau_coeff.matrix[i][j] << " | ";
-            }
-            std::cout << std::setw(column_widths.back()) << rhs[i] << "\n";
-        }
+        // // Вывод строк базисных переменных
+        // for (size_t i = 0; i < nk.size(); ++i)
+        // {
+        //     std::cout << std::setw(column_widths[0]) << "x" << (nk[i] + 1) << " | ";
+        //     for (int j = 0; j < tableau_coeff.column_size(); ++j)
+        //     {
+        //         std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << tableau_coeff.matrix[i][j] << " | ";
+        //     }
+        //     std::cout << std::setw(column_widths.back()) << rhs[i] << "\n";
+        // }
 
-        // Вывод целевой строки
-        double obj_value = c.transpose().multiply(X).matrix[0][0];
-        std::cout << std::setw(column_widths[0]) << "z" << " | ";
-        for (int j = 0; j < dkt.matrix[0].size(); ++j)
-        {
-            std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << dkt.matrix[0][j] << " | ";
-        }
+        // // Вывод целевой строки
+        // double obj_value = c.transpose().multiply(X).matrix[0][0];
+        // std::cout << std::setw(column_widths[0]) << "z" << " | ";
+        // for (int j = 0; j < dkt.matrix[0].size(); ++j)
+        // {
+        //     std::cout << std::setw(column_widths[j + 1]) << std::fixed << std::setprecision(2) << dkt.matrix[0][j] << " | ";
+        // }
 
-        std::cout << "\n";
+        // std::cout << "\n";
 
-        std::cout << std::setw(column_widths.back()) << obj_value << "\n\n";
-        // Вывод разделителя
-        for (size_t width : column_widths)
-        {
-            std::cout << std::string(width + 2, '-') << "+";
-        }
-        std::cin.get();
+        // std::cout << std::setw(column_widths.back()) << obj_value << "\n\n";
+        // // Вывод разделителя
+        // for (size_t width : column_widths)
+        // {
+        //     std::cout << std::string(width + 2, '-') << "+";
+        // }
+        // std::cin.get();
 
         Matrix dklkt = dkt.allocate_matrix({0}, lk);
 
@@ -293,7 +304,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                 break;
             }
         }
-
+        
         std::cout << "jk: ";
         print_vector(jk);
 
@@ -336,7 +347,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         std::cout << "i: ";
         print_vector(i_);
 
-        if (nk == n_plus || uk.allocate_matrix(subtract_vectors<int>(nk, n_plus), {0}) <= 0)
+        if (nk == n_plus || subtract_vectors<int>(nk, n_plus).empty() || uk.allocate_matrix(subtract_vectors<int>(nk, n_plus), {0}) <= 0)
         {
             double theta_k = 100000000000;
             for (auto &i : i_)
@@ -350,40 +361,58 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
             X = X.subtract(uk * theta_k);
             basis_changed = false;
+            jk_used.clear();
         }
         else
         {
             bool ext = false;
             vector<int> choice = subtract_vectors<int>(nk, n_plus);
+            std::cout << "choice: ";
+            print_vector(choice);
+            std::cout << "lk: ";
+            print_vector(lk);
 
-            for (auto &l : lk)
+            for (int i = 0; i < lk.size(); i++)
             {
-                for (auto &n : choice)
+                int l = lk[i];
+                for (int j = 0; j < choice.size(); j++)
                 {
+                    int n = choice[j];
+
                     for (auto &p : used_in_basis_change)
                     {
-                        if (p == pair<int, int>(n, l))
+
+                        if (p.first == n && p.second == l)
                         {
                             ext = true;
+                            break;
                         }
+                        ext = false;
                     }
                     if (ext)
                     {
                         ext = false;
                         continue;
                     }
-                    vector<int> columns = concatenate_vectors<int>({l}, subtract_vectors<int>(nk, {n}));
-                    A.set_columns(columns);
-
-                    if (A.determinant(A.allocate_matrix(A.line_indexes, A.column_indexes).matrix) != 0)
+                    else
                     {
-                        nk = columns;
+                        vector<int> columns = concatenate_vectors<int>({l}, subtract_vectors<int>(nk, {n}));
+                        A.set_columns(columns);
 
-                        A.set_columns(nk);
-                        used_in_basis_change.push_back({l, n});
-                        ext = true;
-                        basis_changed = true;
-                        break;
+                        if (A.determinant(A.allocate_matrix(A.line_indexes, A.column_indexes).matrix) != 0)
+                        {
+                            nk = columns;
+
+                            A.set_columns(nk);
+                            used_in_basis_change.push_back(pair<int, int>(l, n));
+                            used_in_basis_change.push_back(pair<int, int>(n, l));
+
+                            std::cout << "CHANGED" << std::endl;
+
+                            ext = true;
+                            basis_changed = true;
+                            break;
+                        }
                     }
                 }
                 if (ext)
@@ -392,6 +421,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                 }
             }
         }
+
         iter += 1;
     }
 

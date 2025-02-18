@@ -282,6 +282,16 @@ void LPProblemSlack::convert()
             n += 1;
         }
     }
+    // constraints where b < 0 ()=>*=-1
+    for (int i = 0; i < constraints.size(); i++)
+    {
+        if (constraints[i].b < 0){
+            for (int j = 0; j<constraints[i].coefficients.size(); j++){
+                constraints[i].coefficients[j] *= -1;
+            }
+            constraints[i].b *= -1;
+        }
+    }
 }
 
 LPProblem &LPProblemSlack::dual()
