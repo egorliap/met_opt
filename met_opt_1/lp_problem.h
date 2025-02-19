@@ -41,6 +41,7 @@ class LPProblem
 {
 public:
     int n;
+    int to_max = 1;
 
     ObjectiveType objective_type;
     vector<double> objective;
@@ -67,7 +68,6 @@ public:
 class LPProblemGeneral : public LPProblem
 {
 public:
-    int to_max = 1;
     using LPProblem::LPProblem;
 
     // Converts base linear problem to general

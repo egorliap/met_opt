@@ -68,7 +68,7 @@ void Matrix::print()
         }
         std::cout << std::endl;
     }
-    cout << "\n\n";
+    cout << "\n";
 }
 
 // Установка индексов столбцов и строк

@@ -32,6 +32,6 @@ void print_vector(const std::vector<int> &a)
     {
         std::cout << j << " ";
     }
-    std::cout << "\n\n"
+    std::cout << "\n"
               << std::endl;
 }

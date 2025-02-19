@@ -43,13 +43,44 @@ void run_interface()
 		}
 		case 4:
 		{
+			problem->convert();
 			SimplexSolver solver;
-			LPProblemSolution solution = solver.solve(*problem);
+			LPProblemSolution solution = solver.solve(*problem, true);
+
+			std::cout << "Solution to canonical problem:" << std::endl;
+			solution.print_sol();
+			if (solution.status == Status::OPTIMAL){
 			vector<double> init_sol = problem->get_initial_solution(solution.solution);
 			solution.set_solution(init_sol);
-			solution.print_sol();
+			if (problem->to_max == -1)
+			{
+				solution.set_objective(solution.objective_value * -1);
+			}
+			std::cout << "\n\nSolution to initial problem:" << std::endl;
+			solution.print_sol();}
 			break;
 		}
+		case 5:
+		{
+			problem->convert();
+			SimplexSolver solver;
+			LPProblemSolution solution = solver.solve(*problem, false);
+
+			std::cout << "Solution to canonical problem:" << std::endl;
+			solution.print_sol();
+
+			if (solution.status == Status::OPTIMAL){
+				vector<double> init_sol = problem->get_initial_solution(solution.solution);
+				solution.set_solution(init_sol);
+				if (problem->to_max == -1)
+				{
+					solution.set_objective(solution.objective_value * -1);
+				}
+				std::cout << "\n\nSolution to initial problem:" << std::endl;
+				solution.print_sol();}
+			break;
+		}
+
 		case 6:
 		{
 			exit(1);

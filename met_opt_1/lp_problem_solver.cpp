@@ -65,7 +65,7 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
         problem->add_var_bound({i + 1, BoundType::NOT_NEGATIVE});
     }
     problem->print_problem();
-    LPProblemSolution artificial_solution = solve(*problem, solution);
+    LPProblemSolution artificial_solution = solve(*problem, false, solution);
 
     bool infeasible = false;
     for (int i = n; i < n + m; ++i)
@@ -90,28 +90,13 @@ vector<double> SimplexSolver::artificial_basis_method(vector<Constraint> &constr
     return ans;
 }
 
-LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> support)
+LPProblemSolution &SimplexSolver::solve(LPProblem &problem, bool logs, vector<double> support)
 {
-
-    vector<vector<double>> A_tmp;
-    for (auto &constr : problem.get_constraints())
+    if (logs)
     {
-        A_tmp.push_back(constr.coefficients);
+        std::cout << "Вызов функции поиска начального опорного вектора (метод искусственного базиса)" << std::endl;
+        std::cin.get();
     }
-    Matrix A2(A_tmp);
-
-    // Проверка условия A.shape[0] <= A.shape[1]
-    if (A2.matrix.size() > A2.matrix[0].size())
-    {
-        throw std::runtime_error("The number of rows in matrix A must be less than or equal to the number of columns.");
-    }
-
-        // Проверка, что матрица A полного ранга
-    if (!(A2.is_full_rank()))
-    {
-        throw std::runtime_error("Matrix A must be of full rank.");
-    }
-
     if (support.empty())
     {
         auto constraints = problem.get_constraints();
@@ -119,33 +104,57 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
     }
 
     Matrix X(support);
-
+    if (logs)
+    {
+        std::cout << "Полученный начальный опорный вектор:" << std::endl;
+        X.print();
+        std::cin.get();
+    }
     vector<vector<double>> A_;
     for (auto &constr : problem.get_constraints())
     {
         A_.push_back(constr.coefficients);
     }
-    int iter = 0;
 
     Matrix A(A_);
-    std::cout << "A[M, N]: ";
-    A.print();
+    if (logs)
+    {
+        std::cout << "A[M, N]:" << std::endl;
+        A.print();
+        std::cin.get();
+    }
+    if (logs)
+    {
+        std::cout << "Проверка матрицы ограничений на полноту ранга (rank(A) == m)" << std::endl;
+        std::cin.get();
+    }
+    if (A.matrix.size() > A.matrix[0].size())
+    {
+        throw std::runtime_error("The number of rows in matrix A must be less than or equal to the number of columns.");
+    }
+    if (!(A.is_full_rank()))
+    {
+        throw std::runtime_error("Matrix A must be of full rank.");
+    }
+    int iter = 1;
     vector<int> nk;
-
+    vector<int> lk;
     vector<pair<int, int>> used_in_basis_change;
     bool basis_changed = false;
+
     while (true)
     {
-        std::cin.get();
-
-        std::cout << "ITERATION NUMBER " << iter << "\n\n";
         if (!basis_changed)
         {
             used_in_basis_change.clear();
         }
 
-        std::cout << "X: ";
-        X.print();
+        if (logs)
+        {
+            std::cout << "X" << iter << "[N]:" << std::endl;
+            X.print();
+            std::cin.get();
+        }
 
         vector<int> n_plus, n_zero, n_all;
         for (int i = 0; i < X.matrix.size(); i++)
@@ -160,11 +169,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
             }
             n_all.push_back(i);
         }
-        std::cout << "n_plus: ";
-        print_vector(n_plus);
-        std::cout << "n_zero: ";
-        print_vector(n_zero);
-  
 
         A.set_columns(n_plus);
         if (nk.empty() || !basis_changed)
@@ -175,19 +179,32 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         {
             A.set_columns(nk);
         }
-        std::cout << "nk: ";
-        print_vector(nk);
-       
+        lk = subtract_vectors<int>(n_all, nk);
 
-        vector<int> lk = subtract_vectors<int>(n_all, nk);
-        std::cout << "lk: ";
-        print_vector(lk);
+        if (logs)
+        {
+            std::cout << "N" << iter << "+" << std::endl;
+            print_vector(n_plus);
+            std::cout << "N" << iter << "_0" << std::endl;
+            print_vector(n_zero);
+            std::cout << "N" << iter << std::endl;
+            print_vector(nk);
+            std::cout << "A[M, N" << iter << "]" << std::endl;
+            A.print();
+            std::cout << "L" << iter << std::endl;
+            print_vector(lk);
+            std::cin.get();
+        }
 
         Matrix c(problem.get_objective());
 
         Matrix B = A.get_inverse_matrix();
-        std::cout << "B[Nk, M]: ";
-        B.print();
+        if (logs)
+        {
+            std::cout << "B" << "[N" << iter << ", M]" << std::endl;
+            B.print();
+            std::cin.get();
+        }
 
         Matrix cnk = c.allocate_matrix(nk, {0});
 
@@ -195,8 +212,12 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
         Matrix dkt = c.transpose().subtract(cnk.transpose().multiply(B.multiply(A)));
 
-        std::cout << "dkt: ";
-        dkt.print();
+        if (logs)
+        {
+            std::cout << "d" << iter << std::endl;
+            dkt.print();
+            std::cin.get();
+        }
 
         // // Вывод симплекс-таблицы
         // std::cout << "\nSimplex Table:\n";
@@ -291,15 +312,28 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
         Matrix dklkt = dkt.allocate_matrix({0}, lk);
 
-        std::cout << "dk[lk]t: ";
-        dklkt.print();
+        if (logs)
+        {
+            std::cout << "d" << iter << "[L]" << std::endl;
+            dklkt.print();
+            std::cin.get();
+        }
 
+        if (logs)
+        {
+            std::cout << "Проверка вектора d на неотрицательность (если это так, то X" << iter << " == opt)" << std::endl;
+            std::cin.get();
+        }
         if (dklkt >= 0)
         {
             LPProblemSolution *solution = new LPProblemSolution(Status::OPTIMAL, X.transpose().matrix[0], c.transpose().multiply(X).matrix[0][0]);
             return *solution;
         }
-
+        if (logs)
+        {
+            std::cout << "Текущий опорный вектор не является оптимальным, попытка построить k+1 опорный вектор" << std::endl;
+            std::cin.get();
+        }
         vector<int> jk;
         for (int i = 0; i < dkt.matrix[0].size(); i++)
         {
@@ -310,16 +344,25 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
             }
         }
 
-        std::cout << "jk: ";
-        print_vector(jk);
+        if (logs)
+        {
+            std::cout << "Выбрали номер отрицательной компоненты (берем любой, первый например)" << std::endl;
+            std::cout << "jk" << std::endl;
+            print_vector(jk);
+            std::cin.get();
+        }
 
         A.set_columns(jk);
-        std::cout << "A[M, jk]: ";
-        A.print();
+        if (logs)
+        {
+            std::cout << "A[M, jk]" << std::endl;
+            A.print();
+            std::cin.get();
+        }
 
         Matrix BA = B.multiply(A);
-
         vector<double> uk_(n_all.size(), 0);
+
         for (int i = 0; i < BA.matrix.size(); i++)
         {
             uk_[nk[i]] = BA.matrix[i][0];
@@ -330,15 +373,27 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         }
         Matrix uk(uk_);
 
-        std::cout << "uk: ";
-        uk.print();
-
+        if (logs)
+        {
+            std::cout << "Cтроим вектор uk[N]" << std::endl;
+            uk.print();
+            std::cin.get();
+        }
+        if (logs)
+        {
+            std::cout << "Проверяем uk[Nk] <= 0 (если истина, то задача неограничена, возвращаем решение)" << std::endl;
+            std::cin.get();
+        }
         if (uk.allocate_matrix(nk, {0}) <= 0)
         {
             LPProblemSolution *solution = new LPProblemSolution(Status::UNBOUNDED);
             return *solution;
         }
-
+        if (logs)
+        {
+            std::cout << "Задача ограничена. Продолжаем построение следующего опорного вектора" << std::endl;
+            std::cin.get();
+        }
         vector<int> i_;
         for (auto &i : nk)
         {
@@ -348,8 +403,24 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
             }
         }
 
+        if (logs)
+        {
+            std::cout << "Выберем все i, для которых u[i] > 0:" << std::endl;
+            print_vector(i_);
+            std::cin.get();
+        }
+        if (logs)
+        {
+            std::cout << "Проверим Nk == Nk+ (невырожденность Xk)|| uk[Nk\\Nk+] <= 0\nЕсли условие истинно - можем подобрать theta и перейти к следующему опорному вектору (двинуться в сторону минимизации целевой функции)" << std::endl;
+            std::cin.get();
+        }
         if (nk == n_plus || subtract_vectors<int>(nk, n_plus).empty() || uk.allocate_matrix(subtract_vectors<int>(nk, n_plus), {0}) <= 0)
         {
+            if (logs)
+            {
+                std::cout << "Условие оказалось истинным, найдем theta = min_{i, u[i] > 0} (Xk[i]/uk[i])" << std::endl;
+                std::cin.get();
+            }
             double theta_k = 100000000000;
             for (auto &i : i_)
             {
@@ -358,13 +429,24 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                     theta_k = X.matrix[i][0] / uk.matrix[i][0];
                 }
             }
-            std::cout << "Theta: " << theta_k << std::endl;
+            if (logs)
+            {
+                std::cout << "Theta подобрана\ntheta = " << theta_k << std::endl;
+                std::cout << "Строим Xk+1 = Xk - theta*uk" << std::endl;
+
+                std::cin.get();
+            }
 
             X = X.subtract(uk * theta_k);
             basis_changed = false;
         }
         else
         {
+            if (logs)
+            {
+                std::cout << "Условие оказалось ложным, подберем новый базис для Xk, заменяя столбцы матрицы A[M, Nk\\Nk+] на стобцы матрицы A[M, Lk]" << std::endl;
+                std::cin.get();
+            }
             bool ext = false;
             vector<int> choice = subtract_vectors<int>(nk, n_plus);
 
@@ -403,7 +485,13 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                             used_in_basis_change.push_back(pair<int, int>(l, n));
                             used_in_basis_change.push_back(pair<int, int>(n, l));
 
-                            std::cout << "CHANGED" << std::endl;
+                            if (logs)
+                            {
+                                std::cout << "Выбранная замена: заменяем столбец "<< n << " на столбец " << l << std::endl;
+                                std::cout << "A[M, Nk]:"<< std::endl;
+                                A.print();
+                                std::cin.get();
+                            }
 
                             ext = true;
                             basis_changed = true;
@@ -429,17 +517,24 @@ void LPProblemSolution::set_solution(vector<double> solution)
 {
     this->solution = solution;
 }
+void LPProblemSolution::set_objective(double objective)
+{
+    objective_value = objective;
+}
 
 void LPProblemSolution::print_sol()
 {
-    std::cout << "\n\n\nSolution to the problem:\nSTATUS: " << (status == Status::OPTIMAL ? "Optimal" : status == Status::INFEASABLE ? "Infeasable"
-                                                                                                                                     : "Unbounded")
+    std::cout << "STATUS: " << (status == Status::OPTIMAL ? "Optimal" : status == Status::INFEASABLE ? "Infeasable"
+                                                                                                     : "Unbounded")
               << std::endl;
-    std::cout << "X* = ( ";
-    for (auto &el : solution)
+    if (!solution.empty())
     {
-        std::cout << el << " ";
+        std::cout << "X* = ( ";
+        for (auto &el : solution)
+        {
+            std::cout << el << " ";
+        }
+        std::cout << ")" << std::endl;
+        std::cout << "Objective value is: " << objective_value << std::endl;
     }
-    std::cout << ")" << std::endl;
-    std::cout << "Objective value is: " << objective_value << std::endl;
 }

@@ -40,13 +40,14 @@ public:
 		}
 	}
 	void set_solution(vector<double> solution);
+	void set_objective(double objective);
 	void print_sol();
 };
 
 class LPProblemSolver
 {
 public:
-	virtual LPProblemSolution &solve(LPProblem &problem, vector<double> support = vector<double>(0)) = 0;
+	virtual LPProblemSolution &solve(LPProblem &problem, bool logs=false, vector<double> support = vector<double>(0)) = 0;
 };
 
 class SimplexSolver : public LPProblemSolver
@@ -55,5 +56,5 @@ private:
 	vector<double> artificial_basis_method(vector<Constraint> &);
 
 public:
-	LPProblemSolution &solve(LPProblem &problem, vector<double> support = vector<double>(0)) override;
+	LPProblemSolution &solve(LPProblem &problem, bool logs=false,vector<double> support = vector<double>(0)) override;
 };
