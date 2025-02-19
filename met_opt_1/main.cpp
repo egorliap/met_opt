@@ -45,6 +45,8 @@ void run_interface()
 		{
 			SimplexSolver solver;
 			LPProblemSolution solution = solver.solve(*problem);
+			vector<double> init_sol = problem->get_initial_solution(solution.solution);
+			solution.set_solution(init_sol);
 			solution.print_sol();
 			break;
 		}

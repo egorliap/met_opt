@@ -124,6 +124,7 @@ void LPProblemGeneral::convert()
         {
             component *= -1;
         }
+        this->to_max = -1;
         objective_type = ObjectiveType::MINIMIZE;
     }
 
@@ -180,6 +181,14 @@ void LPProblemGeneral::convert()
             fl = false;
         }
     }
+}
+
+std::vector<double> LPProblemGeneral::get_initial_solution(vector<double> solution)
+{
+    for (auto& el : solution){
+        el *= to_max;
+    }
+    return solution;
 }
 
 LPProblem &LPProblemGeneral::dual()
@@ -244,6 +253,10 @@ LPProblem &LPProblemGeneral::dual()
 void LPProblemSlack::convert()
 {
     LPProblemGeneral::convert();
+    if (initial_dim == 0)
+    {
+        initial_dim = n;
+    }
 
     // Handling no-sign solution components
     for (int i = 0; i < bounds.size(); i++)
@@ -254,8 +267,8 @@ void LPProblemSlack::convert()
 
             bounds[i].type = BoundType::NOT_NEGATIVE;
             bounds.push_back({n + 1, BoundType::NOT_NEGATIVE});
+            bounds_to_substract.push_back({bounds[i].component - 1, n});
             n += 1;
-
             // Modifying constraints
             for (auto &constraint : constraints)
             {
@@ -292,8 +305,10 @@ void LPProblemSlack::convert()
     // constraints where b < 0 ()=>*=-1
     for (int i = 0; i < constraints.size(); i++)
     {
-        if (constraints[i].b < 0){
-            for (int j = 0; j<constraints[i].coefficients.size(); j++){
+        if (constraints[i].b < 0)
+        {
+            for (int j = 0; j < constraints[i].coefficients.size(); j++)
+            {
                 constraints[i].coefficients[j] *= -1;
             }
             constraints[i].b *= -1;
@@ -303,15 +318,32 @@ void LPProblemSlack::convert()
 
 LPProblem &LPProblemSlack::dual()
 {
-    LPProblem& dual_problem = LPProblemGeneral::dual();
-    dual_problem.print_problem();
-    LPProblemSlack* dual_problem_slack = new LPProblemSlack(dual_problem.objective, dual_problem.objective_type);
-    for (auto& constr : dual_problem.constraints){
+    LPProblem &dual_problem = LPProblemGeneral::dual();
+    LPProblemSlack *dual_problem_slack = new LPProblemSlack(dual_problem.objective, dual_problem.objective_type);
+
+    for (auto &constr : dual_problem.constraints)
+    {
         dual_problem_slack->add_constraint(constr);
     }
-    for (auto& b : dual_problem.bounds){
+    for (auto &b : dual_problem.bounds)
+    {
         dual_problem_slack->add_var_bound(b);
     }
 
     return *dual_problem_slack;
+}
+
+vector<double> LPProblemSlack::get_initial_solution(vector<double> solution){
+    vector<double> ans(initial_dim);
+
+    for (int i = 0; i < initial_dim; i++){
+        ans[i] = solution[i];
+    }
+    for (auto& p : bounds_to_substract){
+        ans[p.first] -= solution[p.second];
+    }
+    for (int i = 0; i < initial_dim; i++){
+        ans[i] *= to_max;
+    }
+    return ans;
 }

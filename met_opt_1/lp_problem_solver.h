@@ -39,7 +39,7 @@ public:
 			this->objective_value = INFINITY;
 		}
 	}
-
+	void set_solution(vector<double> solution);
 	void print_sol();
 };
 

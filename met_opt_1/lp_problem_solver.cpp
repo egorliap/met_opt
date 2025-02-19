@@ -131,7 +131,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
     std::cout << "A[M, N]: ";
     A.print();
     vector<int> nk;
-    vector<int> jk_used;
 
     vector<pair<int, int>> used_in_basis_change;
     bool basis_changed = false;
@@ -143,12 +142,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         if (!basis_changed)
         {
             used_in_basis_change.clear();
-        }
-
-        std::cout << "USED IN BASIS:\n";
-        for (auto &p : used_in_basis_change)
-        {
-            std::cout << "(" << p.first << ", " << p.second << ")\n";
         }
 
         std::cout << "X: ";
@@ -171,12 +164,9 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         print_vector(n_plus);
         std::cout << "n_zero: ";
         print_vector(n_zero);
-        std::cout << "n_all: ";
-        print_vector(n_all);
+  
 
         A.set_columns(n_plus);
-        std::cout << "A[M, N+]: ";
-        A.print();
         if (nk.empty() || !basis_changed)
         {
             nk = A.get_addition_to_square_matrix(n_zero);
@@ -187,8 +177,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         }
         std::cout << "nk: ";
         print_vector(nk);
-        std::cout << "A[M, Nk]: ";
-        A.print();
+       
 
         vector<int> lk = subtract_vectors<int>(n_all, nk);
         std::cout << "lk: ";
@@ -203,8 +192,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         Matrix cnk = c.allocate_matrix(nk, {0});
 
         A.set_columns(n_all);
-        std::cout << "A[M, N]: ";
-        A.print();
 
         Matrix dkt = c.transpose().subtract(cnk.transpose().multiply(B.multiply(A)));
 
@@ -212,7 +199,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         dkt.print();
 
         // // Вывод симплекс-таблицы
-        // std::cout << "\nSimplex Tableau:\n";
+        // std::cout << "\nSimplex Table:\n";
 
         // // Восстановить все столбцы в A
         // A.set_columns(n_all);
@@ -304,7 +291,7 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
         Matrix dklkt = dkt.allocate_matrix({0}, lk);
 
-        std::cout << "dklkt: ";
+        std::cout << "dk[lk]t: ";
         dklkt.print();
 
         if (dklkt >= 0)
@@ -331,8 +318,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
         A.print();
 
         Matrix BA = B.multiply(A);
-        std::cout << "BA: ";
-        BA.print();
 
         vector<double> uk_(n_all.size(), 0);
         for (int i = 0; i < BA.matrix.size(); i++)
@@ -362,8 +347,6 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                 i_.push_back(i);
             }
         }
-        std::cout << "i: ";
-        print_vector(i_);
 
         if (nk == n_plus || subtract_vectors<int>(nk, n_plus).empty() || uk.allocate_matrix(subtract_vectors<int>(nk, n_plus), {0}) <= 0)
         {
@@ -375,20 +358,15 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
                     theta_k = X.matrix[i][0] / uk.matrix[i][0];
                 }
             }
-            std::cout << "theta: " << theta_k << std::endl;
+            std::cout << "Theta: " << theta_k << std::endl;
 
             X = X.subtract(uk * theta_k);
             basis_changed = false;
-            jk_used.clear();
         }
         else
         {
             bool ext = false;
             vector<int> choice = subtract_vectors<int>(nk, n_plus);
-            std::cout << "choice: ";
-            print_vector(choice);
-            std::cout << "lk: ";
-            print_vector(lk);
 
             for (int i = 0; i < lk.size(); i++)
             {
@@ -445,6 +423,11 @@ LPProblemSolution &SimplexSolver::solve(LPProblem &problem, vector<double> suppo
 
     LPProblemSolution *solution = new LPProblemSolution(Status::INFEASABLE);
     return *solution;
+}
+
+void LPProblemSolution::set_solution(vector<double> solution)
+{
+    this->solution = solution;
 }
 
 void LPProblemSolution::print_sol()
