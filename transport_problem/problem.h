@@ -29,5 +29,5 @@ public:
 
     void print();
     void add_restriction(int from, int to, double limit);
-    void add_restrictions(vector<vector<double>> restrs);
+    void add_restrictions(const vector<vector<double>>& restrs);
 };
