@@ -5,7 +5,8 @@ using std::cout, std::endl;
 
 void TransportProblem::print()
 {
-    cout << "\tTransport Problem" << endl;
+    cout << "\tTransport Problem\n"
+         << endl;
     int a_max_len = 0;
     int c_max_len = 0;
     int b_max_len = 0;
@@ -85,10 +86,29 @@ void TransportProblem::print()
         }
         cout << endl;
     }
+
+    cout << "\nRestrictions:" << endl;
+    bool has_restrictions = false;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            if (restrictions[i][j] != infinity)
+            {
+                cout << "From provider number " << i + 1 << " to consumer number " << j + 1 << " with limit of " << restrictions[i][j] << endl;
+                has_restrictions = true;
+            }
+        }
+    }
+    if (!has_restrictions)
+    {
+        cout << "No restrictions found" << endl;
+    }
 }
 
 void TransportProblem::add_restriction(int from, int to, double limit)
 {
+    restrictions[from][to] = limit;
 }
 
 void TransportProblem::add_restrictions(const vector<vector<double>> &restrs)

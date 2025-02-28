@@ -2,7 +2,11 @@
 
 #include <vector>
 #include <stdexcept>
+#include <limits>
+
 using std::vector;
+
+const int infinity = std::numeric_limits<int>::max();
 
 class TransportProblem
 {
@@ -24,7 +28,7 @@ public:
         {
             throw std::runtime_error("Invalid data: dim cost is not compatable with dims of providers and consumers");
         }
-        this->restrictions = vector<vector<double>>(n, vector<double>(m, 100000000000));
+        this->restrictions = vector<vector<double>>(n, vector<double>(m, infinity));
     }
 
     void print();

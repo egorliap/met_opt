@@ -1,4 +1,5 @@
-#include "problem.h"
+#include "solver.h"
+#include <iostream>
 
 int main()
 {
@@ -12,6 +13,14 @@ int main()
     vector<double> consumers = {2, 8, 2, 8, 11};
     
     TransportProblem problem(cost, providers, consumers);
+
     problem.print();
+    
+    TransportProblemSolver solver;
+    TransportProblemSolution solution = solver.solve(problem);
+    solution.print();
+    problem.add_restriction(0, 4, 1);
+    problem.print();
+
     return 0;
 }
