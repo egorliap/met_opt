@@ -25,7 +25,7 @@ public:
             this->objective_value = objective_value;
         }
     }
-    void set_solution(vector<double> solution);
+    void set_solution(vector<vector<double>> solution);
     void set_objective(double objective);
     void print();
 };

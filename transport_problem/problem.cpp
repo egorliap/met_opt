@@ -111,6 +111,51 @@ void TransportProblem::add_restriction(int from, int to, double limit)
     restrictions[from][to] = limit;
 }
 
-void TransportProblem::add_restrictions(const vector<vector<double>> &restrs)
+void TransportProblem::convert_restrictions()
 {
+    for (int k = 0; k < n; k++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            if (restrictions[k][j] != infinity)
+            {
+
+                restricted.push_back(std::pair<int, int>({j, m}));
+                for (int i = 0; i < n; i++)
+                {
+                    if (i != k)
+                    {
+                        cost[i].push_back(cost[i][j]);
+                    }
+                    else
+                    {
+                        cost[i].push_back(infinity);
+                    }
+                    restrictions[i].push_back(infinity);
+                }
+                consumers.push_back(consumers[j] - restrictions[k][j]);
+                consumers[j] = restrictions[k][j];
+                m += 1;
+            }
+        }
+    }
+}
+
+vector<vector<double>> TransportProblem::get_initial_plan(vector<vector<double>> plan)
+{
+    vector<vector<double>> new_plan(n, vector<double>(m - restricted.size(), 0));
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m - restricted.size(); j++)
+        {
+            new_plan[i][j] = plan[i][j];
+        }
+        for (auto &pair : restricted)
+        {
+            auto [init, appended] = pair;
+            cout << init << " " << appended << endl;
+            new_plan[i][init] = plan[i][init] * (plan[i][init] != infinity) + plan[i][appended] * (plan[i][appended] != infinity);
+        }
+    }
+    return new_plan;
 }

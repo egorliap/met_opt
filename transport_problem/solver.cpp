@@ -69,42 +69,6 @@ vector<pair<int, int>> find_way(vector<vector<double>> adjacency, int from, int 
             path.push_back({path_simple[i], path_simple[i + 1] - n});
         }
     }
-    // for (int i = 0; i < path.size() - 1; i++)
-    // {
-    //     if (path[i].second - path[i + 1].second < 0)
-    //     {
-    //         if (path[i].second - path[i + 1].second != -1)
-    //         {
-    //             path.insert(path.begin() + i + 1, {path[i].first, path[i].second + 1});
-    //             i += 1;
-    //         }
-    //     }
-    //     if (path[i].second - path[i + 1].second > 0)
-    //     {
-    //         if (path[i].second - path[i + 1].second != 1)
-    //         {
-    //             path.insert(path.begin() + i + 1, {path[i].first, path[i].second - 1});
-    //             i += 1;
-    //         }
-    //     }
-
-    //     if (path[i].first - path[i + 1].first < 0)
-    //     {
-    //         if (path[i].first - path[i + 1].first != -1)
-    //         {
-    //             path.insert(path.begin() + i + 1, {path[i].first + 1, path[i].second});
-    //             i += 1;
-    //         }
-    //     }
-    //     if (path[i].first - path[i + 1].first > 0)
-    //     {
-    //         if (path[i].first - path[i + 1].first != 1)
-    //         {
-    //             path.insert(path.begin() + i + 1, {path[i].first - 1, path[i].second});
-    //             i += 1;
-    //         }
-    //     }
-    // }
     return path;
 }
 
@@ -124,7 +88,8 @@ vector<vector<double>> TransportProblemSolver::ne_angle_method(TransportProblem 
         int cur_prov_index = cur.first;
         int cur_cons_index = cur.second;
 
-        if (remaining_consumers[cur_cons_index] <= remaining_providers[cur_prov_index] && remaining_consumers[cur_cons_index] > 0)
+        if (remaining_consumers[cur_cons_index] <= remaining_providers[cur_prov_index] &&
+            remaining_consumers[cur_cons_index] > 0)
         {
             op_plan[cur_prov_index][cur_cons_index] = remaining_consumers[cur_cons_index];
 
@@ -142,7 +107,8 @@ vector<vector<double>> TransportProblemSolver::ne_angle_method(TransportProblem 
                 stack.push_back({cur_prov_index, cur_cons_index + 1});
             }
         }
-        else if (remaining_providers[cur_prov_index] <= remaining_consumers[cur_cons_index] && remaining_providers[cur_prov_index] > 0)
+        else if (remaining_providers[cur_prov_index] <= remaining_consumers[cur_cons_index] &&
+                 remaining_providers[cur_prov_index] > 0)
         {
             op_plan[cur_prov_index][cur_cons_index] = remaining_providers[cur_prov_index];
 
@@ -206,10 +172,11 @@ void TransportProblemSolver::find_potentials(vector<double> *u, vector<double> *
 }
 
 TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &problem)
-{
+{   
+    problem.convert_restrictions();
     if (!is_closed(problem))
     {
-        TransportProblemSolution* sol = new TransportProblemSolution(Status::OPEN_PROBLEM, {});
+        TransportProblemSolution *sol = new TransportProblemSolution(Status::OPEN_PROBLEM, {});
         return *sol;
     }
     vector<vector<double>> plan = ne_angle_method(problem); // support plan
@@ -334,17 +301,17 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
         for (int i = 0; i < path.size(); i++)
         {
             auto [k, j] = path[i];
-        
+
             if (i % 2 == 0)
             {
                 plan[k][j] -= theta;
-                
             }
             else
             {
                 plan[k][j] += theta;
             }
-            if(plan[k][j] == 0){
+            if (plan[k][j] == 0)
+            {
                 plan[k][j] = infinity;
             }
         }
@@ -352,6 +319,11 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
         int a;
         std::cin >> a;
     }
+}
+
+void TransportProblemSolution::set_solution(vector<vector<double>> solution)
+{
+    this->solution = solution;
 }
 
 void TransportProblemSolution::print()
