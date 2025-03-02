@@ -1,3 +1,4 @@
+#include "parser.h"
 #include "solver.h"
 #include <iostream>
 
@@ -12,19 +13,16 @@ int main()
     vector<double> providers = {10, 3, 8, 10};
     vector<double> consumers = {2, 8, 2, 8, 11};
 
-    TransportProblem problem(cost, providers, consumers);
+    TransportProblemParser parser;
 
+    TransportProblem* problem = parser.parse("test_1.txt");
 
-    problem.add_restriction(3, 4, 4);
-
-
-    problem.print();
+    problem->print();
 
     TransportProblemSolver solver;
-    TransportProblemSolution solution = solver.solve(problem);
-    solution.print();
+    TransportProblemSolution solution = solver.solve(*problem);
 
-    vector<vector<double>> initial_plan = problem.get_initial_plan(solution.solution);
+    vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
     solution.set_solution(initial_plan);
     solution.print();
     return 0;
