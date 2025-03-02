@@ -2,28 +2,84 @@
 #include "solver.h"
 #include <iostream>
 
+void run_interface()
+{
+    std::string filename;
+    std::cout << "Enter input file name: ";
+    std::cin >> filename;
+    TransportProblem *problem;
+    TransportProblemParser parser;
+    TransportProblemSolver solver;
+
+    try
+    {
+        problem = parser.parse(filename);
+        std::cout << "Parsed problem:" << std::endl;
+        problem->print();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        abort();
+    }
+    while (true)
+    {
+        int opt;
+        std::cout << "Choose option:\n1 - print problem\n2 - add restriction\n3 - solve problem with step-by-step logs\n4 - solve problem without step-by-step logs\n5 - exit\n"
+                  << std::endl;
+        std::cin >> opt;
+        switch (opt)
+        {
+        case 1:
+        {
+            problem->print();
+            break;
+        }
+        case 2:
+        {
+            int from, to;
+            double limit;
+            std::cout << "Provder:" << std::endl;
+            std::cin >> from;
+
+            std::cout << "Consumer:" << std::endl;
+            std::cin >> to;
+
+            std::cout << "Limit:" << std::endl;
+            std::cin >> limit;
+
+            problem->add_restriction(from, to, limit);
+            break;
+        }
+        case 3:
+        {
+            TransportProblemSolution solution = solver.solve(*problem);
+
+            vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
+            solution.set_solution(initial_plan);
+            solution.print();
+        }
+        case 4:
+        {
+            TransportProblemSolution solution = solver.solve(*problem);
+
+            vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
+            solution.set_solution(initial_plan);
+            solution.print();
+        }
+        case 5:
+        {
+            exit(1);
+        }
+        default:
+            break;
+        }
+    }
+}
+
 int main()
 {
-    int n = 4;
-    int m = 5;
-    vector<vector<double>> cost = {{3, 5, 6, 8, 11},
-                                   {4, 7, 3, 5, 14},
-                                   {9, 3, 4, 4, 10},
-                                   {1, 5, 16, 3, 8}};
-    vector<double> providers = {10, 3, 8, 10};
-    vector<double> consumers = {2, 8, 2, 8, 11};
+    run_interface();
 
-    TransportProblemParser parser;
-
-    TransportProblem* problem = parser.parse("test_1.txt");
-
-    problem->print();
-
-    TransportProblemSolver solver;
-    TransportProblemSolution solution = solver.solve(*problem);
-
-    vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
-    solution.set_solution(initial_plan);
-    solution.print();
     return 0;
 }
