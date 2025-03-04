@@ -171,8 +171,8 @@ void TransportProblemSolver::find_potentials(vector<double> *u, vector<double> *
     }
 }
 
-TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &problem)
-{   
+TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &problem, bool logs)
+{
     problem.convert_restrictions();
     if (!is_closed(problem))
     {
@@ -187,28 +187,34 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
     vector<double> v;
     vector<double> delta;
     bool is_opt = true;
+    bool valid = true;
 
     while (true)
     {
-
-        for (auto &line : plan)
+        if (logs)
         {
-            for (auto &el : line)
+            std::cout << "Current Plan: " << std::endl;
+            for (auto &line : plan)
             {
-                if (el == infinity)
+                for (auto &el : line)
                 {
-                    std::cout << "X ";
-                    continue;
+                    if (el == infinity)
+                    {
+                        std::cout << "X ";
+                        continue;
+                    }
+                    std::cout << el << " ";
                 }
-                std::cout << el << " ";
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
+            std::cin.get();
         }
         u = vector<double>(problem.n, infinity);
         v = vector<double>(problem.m, infinity);
         taken.clear();
         not_taken.clear();
         is_opt = true;
+        valid = true;
         for (int i = 0; i < problem.n; i++)
         {
             for (int j = 0; j < problem.m; j++)
@@ -226,19 +232,21 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
 
         find_potentials(&u, &v, problem.cost, taken);
 
-        std::cout << std::endl;
-
-        for (auto &el : u)
+        if (logs)
         {
-            std::cout << el << " ";
+            std::cout << "u: ";
+            for (auto &el : u)
+            {
+                std::cout << el << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "v: ";
+            for (auto &el : v)
+            {
+                std::cout << el << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
-        for (auto &el : v)
-        {
-            std::cout << el << " ";
-        }
-        std::cout << std::endl;
-
         pair<int, int> max_delta_coords;
         double max_delta = -100;
 
@@ -255,7 +263,6 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
                 }
             }
         }
-        std::cout << "Max delta " << max_delta << std::endl;
 
         if (is_opt)
         {
@@ -277,13 +284,21 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
         }
 
         auto [m_i, m_j] = max_delta_coords; // not taken route to maximise
-        std::cout << m_i << " T " << m_j << std::endl;
+
+        if (logs)
+        {
+            std::cout << "Max delta is " << max_delta << " with coordinates " << m_i << ", " << m_j << std::endl;
+        }
 
         vector<pair<int, int>> path = find_way(plan, m_i, m_j);
-
-        for (auto &el : path)
+        if (logs)
         {
-            std::cout << el.first << " " << el.second << std::endl;
+            std::cout << "Loop found: " << std::endl;
+
+            for (auto &el : path)
+            {
+                std::cout << el.first << " " << el.second << std::endl;
+            }
         }
 
         double theta = infinity;
@@ -310,14 +325,18 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
             {
                 plan[k][j] += theta;
             }
-            if (plan[k][j] == 0)
+            if (plan[k][j] == 0 && valid)
             {
                 plan[k][j] = infinity;
+                valid = false;
             }
         }
         plan[m_i][m_j] = theta;
-        int a;
-        std::cin >> a;
+        if (logs)
+        {
+            std::cout << "Theta: " << theta << std::endl;
+            std::cin.get();
+        }
     }
 }
 

@@ -53,23 +53,26 @@ void run_interface()
         }
         case 3:
         {
-            TransportProblemSolution solution = solver.solve(*problem);
+            TransportProblemSolution solution = solver.solve(*problem, true);
 
             vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
             solution.set_solution(initial_plan);
             solution.print();
+            break;
         }
         case 4:
         {
-            TransportProblemSolution solution = solver.solve(*problem);
+            TransportProblemSolution solution = solver.solve(*problem, false);
 
             vector<vector<double>> initial_plan = problem->get_initial_plan(solution.solution);
             solution.set_solution(initial_plan);
             solution.print();
+            break;
         }
         case 5:
         {
             exit(1);
+            break;
         }
         default:
             break;

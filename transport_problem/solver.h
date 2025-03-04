@@ -38,5 +38,5 @@ private:
     void find_potentials(vector<double> *u, vector<double> *v, vector<vector<double>> c, vector<std::pair<int, int>> taken);
 
 public:
-    TransportProblemSolution &solve(TransportProblem &problem);
+    TransportProblemSolution &solve(TransportProblem &problem, bool logs);
 };

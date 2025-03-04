@@ -108,7 +108,10 @@ void TransportProblem::print()
 
 void TransportProblem::add_restriction(int from, int to, double limit)
 {
-    restrictions[from][to] = limit;
+    if (limit < providers[from] || limit < consumers[to])
+    {
+        restrictions[from][to] = limit;
+    }
 }
 
 void TransportProblem::convert_restrictions()
