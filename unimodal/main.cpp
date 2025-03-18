@@ -12,7 +12,7 @@ double funct(double x)
 void run_interface()
 {
     double result, a = 0.5, b = 1, exact = 0.5109734293;
-    std::vector<double> epss = {1e-1, 1e-2, 1e-3, 1e-5};
+    std::vector<double> epss = {1e-1, 1e-2, 1e-3, 1e-4, 1e-5};
 
     Function<double, double> f;
     f.set_function(*funct);
@@ -28,7 +28,7 @@ void run_interface()
         std::cout << "Result of golden ratio method for eps=" << eps << ": " << result << "\treal error is: " << abs(exact - result) << std::endl;
         std::cout << "Number of calls of function: " << f.get_counter()
                   << std::endl;
-        std::cout << "Theoretical number of calls of function: " << f.get_counter() << "\n"
+        std::cout << "Theoretical number of calls of function: " << gref.get_theor_calls_count(a, b, eps) << "\n"
                   << std::endl;
         f.reset_counter();
 
@@ -36,7 +36,7 @@ void run_interface()
         std::cout << "Result of uniform search method for eps=" << eps << ": " << result << "\treal error is: " << abs(exact - result) << std::endl;
         std::cout << "Number of calls of function: " << f.get_counter()
                   << std::endl;
-        std::cout << "Theoretical number of calls of function: " << f.get_counter() << "\n\n\n\n"
+        std::cout << "Theoretical number of calls of function: " << usef.get_theor_calls_count(a, b, eps) << "\n\n\n\n"
                   << std::endl;
         f.reset_counter();
     }

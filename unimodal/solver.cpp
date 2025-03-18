@@ -5,31 +5,43 @@
 double GoldenRatioExtremumFinder::find(Function<double, double> *funct, double a, double b, double eps, bool is_min)
 {
     double phi = (3 - sqrt(5)) / 2;
-    double x1 = a, x2 = b, x1_new, x2_new;
+    double x1, x2;
     double y1, y2, t;
     int iter = 0;
 
+    t = (b - a) * phi;
+
+    x1 = a + t;
+    x2 = b - t;
+
+    y1 = funct->get_value(x1);
+    y2 = funct->get_value(x2);
+
     while (iter < max_iter)
     {
-        t = (x2 - x1) * phi;
 
-        x1_new = x1 + t;
-        x2_new = x2 - t;
-
-        y1 = funct->get_value(x1_new);
-        y2 = funct->get_value(x2_new);
-        if (abs(x1_new - x2_new) < eps)
+        if (abs(x1 - x2) < eps)
         {
-            return (x1_new + x2_new) / 2;
+            return (x1 + x2) / 2;
         }
 
         if ((y1 >= y2) == is_min)
         {
-            x1 = x1_new;
+            a = x1;
+            t = (b - a) * phi;
+            x1 = x2;
+            x2 = b - t;
+            y1 = y2;
+            y2 = funct->get_value(x2);
         }
         else
         {
-            x2 = x2_new;
+            b = x2;
+            t = (b - a) * phi;
+            x2 = x1;
+            x1 = a + t;
+            y2 = y1;
+            y1 = funct->get_value(x1);
         }
 
         iter++;
@@ -37,22 +49,36 @@ double GoldenRatioExtremumFinder::find(Function<double, double> *funct, double a
     return b;
 }
 
+int GoldenRatioExtremumFinder::get_theor_calls_count(double a, double b, double eps)
+{
+    double phi = (3 - sqrt(5)) / 2;
+    return static_cast<int>(ceil(log((b - a) / eps) / abs(log(phi)))) + 1;
+}
+
 double UniformSearchExtremumFinder::find(Function<double, double> *funct, double a, double b, double eps, bool is_min)
 {
     int n = static_cast<int>((b - a) / eps - 1);
     int iter = 0;
     int i = 0;
-    double h = (b - a)/(n+1), y1, y2;
+    double h = (b - a) / (n + 1), y1, y2;
     while (iter < max_iter)
     {
 
-        y1 = funct->get_value(a + i*h);
-        y2 = funct->get_value(a + (i+1)*h);
-        if ((y1 >= y2) == is_min){
+        y1 = funct->get_value(a + i * h);
+        y2 = funct->get_value(a + (i + 1) * h);
+        if ((y1 >= y2) == is_min)
+        {
             i += 1;
-        }else{
-            return a + (2*i+1)*h/2;
+        }
+        else
+        {
+            return a + (2 * i + 1) * h / 2;
         }
     }
     return b;
+}
+
+int UniformSearchExtremumFinder::get_theor_calls_count(double a, double b, double eps)
+{
+    return 0;
 }
