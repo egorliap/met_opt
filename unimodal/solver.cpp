@@ -80,5 +80,5 @@ double UniformSearchExtremumFinder::find(Function<double, double> *funct, double
 
 int UniformSearchExtremumFinder::get_theor_calls_count(double a, double b, double eps)
 {
-    return 0;
+    return static_cast<int>((b-a)/eps) - 1;
 }
