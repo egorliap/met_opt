@@ -51,8 +51,8 @@ double GoldenRatioExtremumFinder::find(Function<double, double> *funct, double a
 
 int GoldenRatioExtremumFinder::get_theor_calls_count(double a, double b, double eps)
 {
-    double phi = (3 - sqrt(5)) / 2;
-    return static_cast<int>(ceil(log((b - a) / eps) / abs(log(phi)))) + 1;
+    double phi = (1 + sqrt(5)) / 2;
+    return static_cast<int>(ceil(log((b - a) / eps) / abs(log(1/phi)))) + 1;
 }
 
 double UniformSearchExtremumFinder::find(Function<double, double> *funct, double a, double b, double eps, bool is_min)
