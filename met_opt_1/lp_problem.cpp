@@ -335,15 +335,13 @@ LPProblem &LPProblemSlack::dual()
 
 vector<double> LPProblemSlack::get_initial_solution(vector<double> solution){
     vector<double> ans(initial_dim);
-
+    cout<<to_max<<endl;
     for (int i = 0; i < initial_dim; i++){
         ans[i] = solution[i];
     }
     for (auto& p : bounds_to_substract){
         ans[p.first] -= solution[p.second];
     }
-    for (int i = 0; i < initial_dim; i++){
-        ans[i] *= to_max;
-    }
+   
     return ans;
 }

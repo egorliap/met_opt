@@ -262,6 +262,11 @@ TransportProblemSolution &TransportProblemSolver::solve(TransportProblem &proble
                     max_delta_coords = {i, j};
                 }
             }
+            else if (u[i] + v[j] - problem.cost[i][j] == 0){
+
+                std::cout << "Zero delta with coordinates " << i << ", " << j << std::endl;
+
+            }
         }
 
         if (is_opt)

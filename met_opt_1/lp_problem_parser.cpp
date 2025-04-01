@@ -147,8 +147,6 @@ LPProblemSlack *LPProblemParser::parse(const string &filename)
 		}
 	}
 
-	if (eqCount != 3 || (leCount + geCount) != 2)
-		throw runtime_error("Constraints must have 3 equalities and 2 inequalities");
 
 	// Read variable bounds
 	vector<VarBoundInfo> varBounds;
@@ -159,8 +157,6 @@ LPProblemSlack *LPProblemParser::parse(const string &filename)
 		varBounds.push_back(parseVarBound(line, n));
 	}
 
-	if (varBounds.size() != 4)
-		throw runtime_error("Exactly 4 variables must have bounds");
 
 	// Create problem
 	LPProblemSlack *problem = new LPProblemSlack(n);

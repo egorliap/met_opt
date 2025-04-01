@@ -1,6 +1,6 @@
 #include "lp_problem_parser.h"
 #include <iostream>
-
+// 6 компания
 void run_interface()
 {
 	std::string filename;
