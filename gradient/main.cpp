@@ -14,7 +14,7 @@ double f(std::vector<double> &x)
         sq_sum += x[i] * x[i];
     }
 
-    return exp(-sq_sum) * (x[0]);
+    return 4*x[0]*x[0] + x[1]*x[1] + cos(3*x[0] + 3*x[1]) - x[0] + 2*x[1];
 }
 
 void run_interface()
@@ -22,7 +22,7 @@ void run_interface()
     int choice;
     MultivarFunction func(2);
     func.set_function(f);
-    std::vector<double> x({0, 0});
+    std::vector<double> x({0.01, 1.22});
     ExtremumFinder<vector<double>, double> *solver;
     vector<double> epss = {0.1, 0.01, 0.001};
 
