@@ -7,7 +7,7 @@ template <typename ArgType, typename RetType>
 class ExtremumFinder
 {
 protected:
-    int max_iter = 10000;
+    int max_iter = 100000000;
 
 public:
     ExtremumFinder(int max_iter)

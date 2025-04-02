@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -lm
 
-SRC = vector_utils.cpp solver.cpp function.cpp main.cpp
+SRC = vector_utils.cpp solver.cpp main.cpp
 OBJ = $(SRC:.cpp=.o)
 DEPS = vector_utils.h solver.h function.h
 

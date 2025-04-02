@@ -33,7 +33,7 @@ int main()
 
     for (int i = 0; i < epss.size(); i++)
     {
-
+        std::cout << "penis" << std::endl;
         std::pair<vector<double>, double> ans = nm_solver.find(func, x, epss[i], 1);
 
         std::cout << "epsilon = " << epss[i] << std::endl;

@@ -51,15 +51,15 @@ std::pair<std::vector<double>, double> NewtonMethod::find(MultivarFunction &func
     vector<double> x_cur(x0);
     vector<double> x_new;
     double cur_f;
-
+    
     while (iter < max_iter)
     {
         cur_f = funct.get_value(x_cur);
         g = funct.gradient(x_cur);
         h = funct.hessian(x_cur);
-
+        
         if (norm(g) < eps)
-        {
+        { 
             return {x_cur, cur_f};
         }
         double det = determinant(h);
@@ -76,6 +76,7 @@ std::pair<std::vector<double>, double> NewtonMethod::find(MultivarFunction &func
         x_cur = x_new;
         iter++;
     }
+    return {x_cur, cur_f};
 }
 
 std::pair<std::vector<double>, double> HookJeevesMethod::find(MultivarFunction &funct, std::vector<double> &x0, double eps, double alpha)
