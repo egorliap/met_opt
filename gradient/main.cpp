@@ -22,11 +22,11 @@ void run_interface()
     int choice;
     MultivarFunction func(2);
     func.set_function(f);
-    std::vector<double> x({0.01, 1.22});
+    std::vector<double> x({1, -1});
     ExtremumFinder<vector<double>, double> *solver;
     vector<double> epss = {0.1, 0.01, 0.001};
 
-    vector<double> x_real = {-1 / sqrt(2), 0};
+    vector<double> x_real = {0.0958, -1.1169};
     double f_real = f(x_real);
     while (true)
     {
