@@ -14,41 +14,88 @@ double f(std::vector<double> &x)
         sq_sum += x[i] * x[i];
     }
 
-    return exp(sq_sum) * (sq_sum);
+    return exp(-sq_sum) * (x[0]);
+}
+
+void run_interface()
+{
+    int choice;
+    MultivarFunction func(2);
+    func.set_function(f);
+    std::vector<double> x({0, 0});
+    ExtremumFinder<vector<double>, double> *solver;
+    vector<double> epss = {0.1, 0.01, 0.001};
+
+    vector<double> x_real = {-1 / sqrt(2), 0};
+    double f_real = f(x_real);
+    while (true)
+    {
+        std::cout << "Choose method:\n 1 - split step gradient method\n 2 - Newton method\n 3 - Hook-Jeevs method" << std::endl;
+        std::cin >> choice;
+        if (choice == 1)
+        {
+            solver = new StepSplittingGradientMethod(10000);
+        }
+        else if (choice == 2)
+        {
+            solver = new NewtonMethod(10000);
+        }
+        else if (choice == 3)
+        {
+            solver = new HookJeevesMethod(10000);
+        }
+        else if (choice == 4)
+        {
+            solver = new StepSplittingGradientMethod(10000);
+            std::pair<vector<double>, double> ans = solver->find(func, x, epss[0], 1);
+            ans = solver->find(func, ans.first, epss[2], 1);
+
+            std::cout << "epsilon = " << epss[2] << std::endl;
+
+            std::cout << std::fixed;
+            std::cout << std::setprecision(3);
+
+            std::cout << "f(x*) = " << ans.second << std::endl;
+            vector<double> res_x(ans.first);
+            print_vector(res_x, "x*");
+
+            auto sub = subtract(res_x, x_real);
+            std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
+            std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
+
+            std::cout << "\n\n";
+            continue;
+        }
+        else
+        {
+            std::cout << "choose 1, 2 or 3" << std::endl;
+            continue;
+        }
+
+        for (int i = 0; i < epss.size(); i++)
+        {
+            std::pair<vector<double>, double> ans = solver->find(func, x, epss[i], 1);
+
+            std::cout << "epsilon = " << epss[i] << std::endl;
+
+            std::cout << std::fixed;
+            std::cout << std::setprecision(i + 2);
+
+            std::cout << "f(x*) = " << ans.second << std::endl;
+            vector<double> res_x(ans.first);
+            print_vector(res_x, "x*");
+
+            auto sub = subtract(res_x, x_real);
+            std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
+            std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
+
+            std::cout << "\n\n";
+        }
+    }
 }
 
 int main()
 {
-    MultivarFunction func(2);
-    func.set_function(f);
-    std::vector<double> x({-1, 1});
-
-    StepSplittingGradientMethod ss_solver(10000);
-    NewtonMethod nm_solver(10000);
-    HookJeevesMethod hj_solver(10000);
-
-    vector<double> epss = {0.1, 0.01, 0.001};
-
-    vector<double> x_real = {0, 0};
-
-    for (int i = 0; i < epss.size(); i++)
-    {
-        std::cout << "penis" << std::endl;
-        std::pair<vector<double>, double> ans = nm_solver.find(func, x, epss[i], 1);
-
-        std::cout << "epsilon = " << epss[i] << std::endl;
-
-        std::cout << std::fixed;
-        std::cout << std::setprecision(i + 2);
-
-        std::cout << "f(x*) = " << ans.second << std::endl;
-        vector<double> res_x(ans.first);
-        print_vector(res_x, "x*");
-
-        auto sub = subtract(res_x, x_real);
-        std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
-
-        std::cout << "\n\n";
-    }
+    run_interface();
     return 0;
 }
