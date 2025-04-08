@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lp_problem_solver.h"
+#include "include/lp_problem_solver.h"
 #include <string>
 #include <vector>
 #include <stdexcept>

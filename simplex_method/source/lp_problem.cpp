@@ -1,6 +1,6 @@
 #include <iterator>
 #include <iostream>
-#include "lp_problem.h"
+#include "include/lp_problem.h"
 using std::cout;
 using std::endl;
 

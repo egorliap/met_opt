@@ -1,5 +1,5 @@
-#include "parser.h"
-#include "solver.h"
+#include "include/parser.h"
+#include "include/solver.h"
 #include <iostream>
 
 void run_interface()

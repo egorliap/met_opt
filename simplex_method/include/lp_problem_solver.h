@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "lp_problem.h"
-#include "matrix.h"
+#include "include/lp_problem.h"
+#include "include/matrix.h"
 #include <cmath>
 
 using std::vector;

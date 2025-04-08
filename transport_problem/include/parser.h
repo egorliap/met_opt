@@ -1,6 +1,6 @@
 #pragma once
 
-#include "problem.h"
+#include "include/problem.h"
 #include <string>
 #include <vector>
 #include <stdexcept>

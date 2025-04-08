@@ -30,7 +30,7 @@ void run_interface()
     double f_real = f(x_real);
     while (true)
     {
-        std::cout << "Choose method:\n 1 - split step gradient method\n 2 - Newton method\n 3 - Hook-Jeevs method" << std::endl;
+        std::cout << "Choose method:\n 1 - split step gradient method\n 2 - Newton method\n 3 - Hook-Jeevs method\n 4 - split step gradient method + Newton method\n 5 - Hook-Jeevs method + Newton method" << std::endl;
         std::cin >> choice;
         if (choice == 1)
         {
@@ -47,19 +47,83 @@ void run_interface()
         else if (choice == 4)
         {
             solver = new StepSplittingGradientMethod(10000);
-            std::pair<vector<double>, double> ans = solver->find(func, x, epss[0], 1);
-            ans = solver->find(func, ans.first, epss[2], 1);
+            std::pair<vector<double>, double> ans = solver->find(func, x, epss[0]*2, 1);
+            std::cout << "Results for Step-splitting method" << std::endl;
 
-            std::cout << "epsilon = " << epss[2] << std::endl;
+            std::cout << "epsilon = " << epss[0] << std::endl;
 
             std::cout << std::fixed;
-            std::cout << std::setprecision(3);
+            std::cout << std::setprecision(2);
 
             std::cout << "f(x*) = " << ans.second << std::endl;
             vector<double> res_x(ans.first);
             print_vector(res_x, "x*");
 
             auto sub = subtract(res_x, x_real);
+            std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
+            std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
+
+            std::cout << "\n\n";
+            
+
+            std::cout << "Final approximation with Newton method" << std::endl;
+
+            solver = new NewtonMethod(10000);
+            ans = solver->find(func, ans.first, epss[0], 1);
+
+            std::cout << "epsilon = " << epss[0] << std::endl;
+
+            std::cout << std::fixed;
+            std::cout << std::setprecision(2);
+
+            std::cout << "f(x*) = " << ans.second << std::endl;
+            res_x = ans.first;
+            print_vector(res_x, "x*");
+
+            sub = subtract(res_x, x_real);
+            std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
+            std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
+
+            std::cout << "\n\n";
+            continue;
+        }
+        else if (choice == 5)
+        {
+            solver = new HookJeevesMethod(10000);
+            std::pair<vector<double>, double> ans = solver->find(func, x, epss[0], 1);
+            std::cout << "Results for Hook-Jeevs method" << std::endl;
+
+            std::cout << "epsilon = " << epss[0] << std::endl;
+
+            std::cout << std::fixed;
+            std::cout << std::setprecision(2);
+
+            std::cout << "f(x*) = " << ans.second << std::endl;
+            vector<double> res_x(ans.first);
+            print_vector(res_x, "x*");
+
+            auto sub = subtract(res_x, x_real);
+            std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
+            std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
+
+            std::cout << "\n\n";
+            
+
+            std::cout << "Final approximation with Newton method" << std::endl;
+
+            solver = new NewtonMethod(10000);
+            ans = solver->find(func, ans.first, epss[0], 1);
+
+            std::cout << "epsilon = " << epss[0] << std::endl;
+
+            std::cout << std::fixed;
+            std::cout << std::setprecision(2);
+
+            std::cout << "f(x*) = " << ans.second << std::endl;
+            res_x = ans.first;
+            print_vector(res_x, "x*");
+
+            sub = subtract(res_x, x_real);
             std::cout << "||x*_real - x*|| = " << norm(sub) << std::endl;
             std::cout << "||f*_real - f(x*)|| = " << fabs(f_real - f(res_x)) << std::endl;
 
@@ -72,7 +136,7 @@ void run_interface()
             continue;
         }
 
-        for (int i = 0; i < epss.size(); i++)
+        for (int i = 0; i < epss.size()-1; i++)
         {
             std::pair<vector<double>, double> ans = solver->find(func, x, epss[i], 1);
 

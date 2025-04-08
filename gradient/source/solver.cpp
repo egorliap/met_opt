@@ -14,6 +14,13 @@ std::pair<std::vector<double>, double> StepSplittingGradientMethod::find(Multiva
 
     while (iter < max_iter)
     {
+
+        if (iter > 0)
+        {
+            // std::cout << "||x_k+1 - x*||/||x_k-x*||" << norm(subtract(x_next, {0.0958, -1.1169})) / norm(subtract(x_cur, {0.0958, -1.1169})) << std::endl;
+            x_cur = x_next;
+        }
+
         success = false;
         cur_f = funct.get_value(x_cur);
         d = funct.gradient(x_cur);
@@ -28,7 +35,6 @@ std::pair<std::vector<double>, double> StepSplittingGradientMethod::find(Multiva
 
             if (cur_f > funct.get_value(x_next))
             {
-                x_cur = x_next;
                 success = true;
             }
             else
@@ -44,22 +50,26 @@ std::pair<std::vector<double>, double> StepSplittingGradientMethod::find(Multiva
 std::pair<std::vector<double>, double> NewtonMethod::find(MultivarFunction &funct, std::vector<double> &x0, double eps, double alpha)
 {
     int iter = 0;
-
+    int k = 0;
     vector<double> g = funct.gradient(x0);
     vector<vector<double>> h = funct.hessian(x0);
 
     vector<double> x_cur(x0);
-    vector<double> x_new;
+    vector<double> x_new(add(x_cur, {100, 100}));
     double cur_f = funct.get_value(x_cur);
-    
+
     while (iter < max_iter)
     {
         g = funct.gradient(x_cur);
         h = funct.hessian(x_cur);
-        
-        if (norm(g) < eps)
-        { 
+
+        if (k > 0 && norm(subtract(x_cur, x_new)) < eps / 1000)
+        {
             return {x_cur, cur_f};
+        }
+        if (iter > 0)
+        {
+            x_cur = x_new;
         }
         double det = determinant(h);
         if (det < 1e-10)
@@ -71,12 +81,16 @@ std::pair<std::vector<double>, double> NewtonMethod::find(MultivarFunction &func
             vector<vector<double>> inv_h = get_inverse_matrix(h);
             vector<double> mult = matrix_vector_multiply(inv_h, g);
             x_new = subtract(x_cur, mult);
+            k++;
+            std::cout << "k = " << k << std::endl;
+            print_vector(x_new, "x_k");
         }
-        x_cur = x_new;
-        double new_f = funct.get_value(x_cur);
 
-        if (new_f > cur_f) {
-            x_cur = subtract(x_cur, multiply(0.5, g)); 
+        double new_f = funct.get_value(x_new);
+
+        if (new_f > cur_f)
+        {
+            x_new = subtract(x_cur, multiply(-0.5, g));
         }
         iter++;
     }
@@ -159,7 +173,7 @@ std::pair<std::vector<double>, double> HookJeevesMethod::find(MultivarFunction &
 
         // Проверка условия остановки
         bool stop = true;
-        for (const auto& step : delta_step)
+        for (const auto &step : delta_step)
         {
             if (step > eps)
             {
@@ -175,5 +189,5 @@ std::pair<std::vector<double>, double> HookJeevesMethod::find(MultivarFunction &
         iter++;
     }
 
-    return { x_base, func_value };
+    return {x_base, func_value};
 }

@@ -1,5 +1,5 @@
-#include "function.h"
-#include "solver.h"
+#include "include/function.h"
+#include "include/solver.h"
 #include <iostream>
 #include <math.h>
 #include <vector>

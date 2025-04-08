@@ -1,6 +1,6 @@
 #ifndef SOLVER_CPP
 #define SOLVER_CPP
-#include "solver.h"
+#include "include/solver.h"
 #include <math.h>
 #include <utility>
 #include <iostream>

@@ -1,4 +1,4 @@
-#include "lp_problem_parser.h"
+#include "include/lp_problem_parser.h"
 #include <iostream>
 // 6 компания
 void run_interface()

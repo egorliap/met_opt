@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
-#include "lp_problem_solver.h"
+#include "include/lp_problem_solver.h"
 #include <cmath>
 #include <iomanip>
 #include <string>
